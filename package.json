@@ -1,0 +1,14 @@
+{
+  "name": "optika-sales-management",
+  "version": "1.0.0",
+  "description": "מערכת ניהול מכירות משקפיים בשכונות — לוח שנה עברי־לועזי, ניהול מכירות, לקוחות, רווחיות, דוחות וצינתוקים",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "dev": "python3 -m http.server 8080",
+    "test": "node tests/run.mjs"
+  },
+  "keywords": ["hebrew-calendar", "sales-management", "rtl", "optics"],
+  "license": "UNLICENSED"
+}
