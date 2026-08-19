@@ -60,8 +60,12 @@ export function renderCustomerTable(sale, onChange, opts = {}) {
   }
 
   function draw() {
+    drawBody();
+    drawFooter();
+  }
+
+  function drawBody() {
     clear(tbody);
-    clear(tfoot);
     if (!sale.customers.length) {
       const td = el('td', { colspan: String(cols.length + 2 + (opts.selectable ? 1 : 0)) }, [
         emptyState('אין עדיין לקוחות במכירה זו — לחצו על "הוספת לקוח"', '👓'),
@@ -101,8 +105,16 @@ export function renderCustomerTable(sale, onChange, opts = {}) {
       ]));
       tbody.appendChild(tr);
     });
+  }
 
-    /* ------- שורת סיכום ------- */
+  /* ------- שורת סיכום (מצוירת בנפרד כדי לא לבנות מחדש את הטבלה בכל הקלדה) ------- */
+  function drawFooter() {
+    clear(tfoot);
+    // רענון עמודת הצד אם היא מציגה שדה מהרשומה
+    if ((cfg.sideHeaderField || 'index') !== 'index') {
+      const cells = tbody.querySelectorAll('td.side-head');
+      sale.customers.forEach((c, i) => { if (cells[i]) cells[i].textContent = sideValue(c, i); });
+    }
     if (cfg.showTotals !== false && sale.customers.length) {
       const t = saleTotals(sale);
       const ftr = el('tr');
@@ -121,10 +133,12 @@ export function renderCustomerTable(sale, onChange, opts = {}) {
     }
   }
 
+  /** נקרא אחרי עריכת תא — מעדכן סיכומים בלבד, בלי לבנות מחדש את הטבלה
+   *  (שומר על מיקום הסמן ומונע שגיאות DOM בתוך אירועי blur) */
   function commit() {
     store.save();
     onChange && onChange();
-    draw();
+    drawFooter();
   }
 
   draw();

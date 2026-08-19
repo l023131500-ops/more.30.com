@@ -31,7 +31,12 @@ function parseHash() {
 
 export function navigate(route, params = {}) {
   const qs = new URLSearchParams(params).toString();
-  location.hash = `#/${route}${qs ? '?' + qs : ''}`;
+  const target = `#/${route}${qs ? '?' + qs : ''}`;
+  if (location.hash === target) {
+    renderRoute();   // אותה כתובת — לא נורה hashchange, לכן מרעננים ידנית
+  } else {
+    location.hash = target;
+  }
 }
 
 function renderNav() {

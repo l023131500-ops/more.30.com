@@ -38,7 +38,12 @@ export function el(spec, props = {}, children = []) {
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-export function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); return node; }
+export function clear(node) {
+  // replaceChildren אטומי — נמנע משגיאות removeChild כשהמחיקה קורית בתוך אירוע blur
+  if (node.replaceChildren) node.replaceChildren();
+  else while (node.firstChild) node.removeChild(node.firstChild);
+  return node;
+}
 
 /* ------------------------------ פורמט ------------------------------ */
 
