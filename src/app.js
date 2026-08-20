@@ -39,13 +39,13 @@ export function navigate(route, params = {}) {
   }
 }
 
-function renderNav() {
+function renderNav(closeDrawer) {
   const nav = el('nav.nav');
   for (const [key, r] of Object.entries(ROUTES)) {
     if (r.hidden) continue;
     nav.appendChild(el('a', {
       class: current.route === key ? 'active' : '',
-      onclick: () => navigate(key),
+      onclick: () => { closeDrawer(); navigate(key); },
     }, [el('span.ico', { text: r.icon }), r.label]));
   }
   return nav;
@@ -57,27 +57,36 @@ function renderShell() {
   const contentEl = el('div.content#content');
   const titleEl = el('h2', { text: ROUTES[current.route].title });
 
+  const app = el('div.app');
+  const closeDrawer = () => app.classList.remove('nav-open');
+  const toggleDrawer = () => app.classList.toggle('nav-open');
+
   const sidebar = el('aside.sidebar', {}, [
     el('div.brand', {}, [
       el('h1', { text: S.orgName || 'אופטיקה לכל כיס' }),
       el('p', { text: S.subtitle || '' }),
     ]),
-    renderNav(),
+    renderNav(closeDrawer),
     el('div.sidebar-foot', { text: 'מערכת ניהול מכירות משקפיים' }),
   ]);
 
-  document.body.appendChild(el('div.app', {}, [
-    sidebar,
-    el('main.main', {}, [
-      el('header.topbar', {}, [
-        titleEl,
-        el('div.spacer'),
-        el('button.btn.sm', { text: '📅 לוח שנה', onclick: () => navigate('calendar') }),
-        el('button.btn.sm', { text: '📊 דוחות', onclick: () => navigate('reports') }),
-      ]),
-      contentEl,
+  app.appendChild(el('div.nav-scrim', { onclick: closeDrawer }));
+  app.appendChild(sidebar);
+  app.appendChild(el('main.main', {}, [
+    el('header.topbar', {}, [
+      el('button.btn.sidebar-toggle', {
+        text: '☰', title: 'תפריט', 'aria-label': 'תפריט',
+        onclick: (e) => { e.stopPropagation(); toggleDrawer(); },
+      }),
+      titleEl,
+      el('div.spacer'),
+      el('button.btn.sm', { text: '📅 לוח שנה', onclick: () => navigate('calendar') }),
+      el('button.btn.sm', { text: '📊 דוחות', onclick: () => navigate('reports') }),
     ]),
+    contentEl,
   ]));
+
+  document.body.appendChild(app);
   return contentEl;
 }
 

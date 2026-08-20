@@ -153,8 +153,10 @@ export function render(root, nav) {
   }
 
   root.appendChild(el('div.calendar', {}, [
-    el('div.cal-dow', {}, WEEKDAY_SHORT.map((d, i) =>
-      el('div', { text: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][i] }))),
+    el('div.cal-dow', {}, WEEKDAY_SHORT.map((short, i) => el('div', {}, [
+      el('span.dow-full', { text: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][i] }),
+      el('span.dow-short', { text: short }),
+    ]))),
     grid,
   ]));
 

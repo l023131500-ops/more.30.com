@@ -263,7 +263,7 @@ textarea.input { min-height: 72px; resize: vertical; }
 .legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; font-size: 12.5px; color: var(--text-muted); }
 .legend i { display: inline-block; width: 13px; height: 13px; border-radius: 4px; margin-left: 5px; vertical-align: -2px; border: 1px solid rgba(0,0,0,.08); }
 
-@media (max-width: 900px) { .cal-day { min-height: 88px; } .cal-day .h { display: none; } }
+@media (max-width: 900px) { .cal-day { min-height: 92px; } }
 
 /* ------------------------------ טבלאות ------------------------------ */
 
@@ -364,9 +364,81 @@ table.tbl .rownum { background: var(--surface-2); color: var(--text-faint); font
 .mini-list li.done { opacity: .55; }
 .mini-list li.done .txt { text-decoration: line-through; }
 
+/* --------------------- מגירת ניווט למסכים צרים --------------------- */
+
+.sidebar-toggle { display: none; }
+.nav-scrim { display: none; }
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed; top: 0; right: 0; bottom: 0; height: 100%;
+    width: 258px; z-index: 60;
+    transform: translateX(100%);
+    transition: transform .22s ease;
+    box-shadow: -6px 0 24px rgba(15, 23, 42, .28);
+  }
+  .app.nav-open .sidebar { transform: none; }
+
+  .nav-scrim {
+    display: block; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, .45);
+    z-index: 55; opacity: 0; pointer-events: none;
+    transition: opacity .22s ease;
+  }
+  .app.nav-open .nav-scrim { opacity: 1; pointer-events: auto; }
+
+  .sidebar-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; padding: 0; flex-shrink: 0;
+    font-size: 19px; line-height: 1;
+  }
+
+  .topbar { padding: 10px 12px; gap: 10px; flex-wrap: nowrap; }
+  .topbar h2 { font-size: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* קיצורי הדרך כפולים למגירת הניווט — מוסתרים כדי לפנות מקום */
+  .topbar > .btn.sm { display: none; }
+  .content { padding: 14px 12px 60px; }
+  .card > h3 { padding: 11px 12px; font-size: 14.5px; }
+  .card-body { padding: 12px; }
+  .kpis { gap: 8px; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); }
+  .kpi { padding: 10px 12px; }
+  .kpi .value { font-size: 19px; }
+  .cal-head { gap: 6px; }
+  .cal-title { font-size: 18px; width: 100%; order: -1; }
+  .modal-back { padding: 0; align-items: flex-end; }
+  .modal { max-height: 94vh; border-radius: var(--radius) var(--radius) 0 0; }
+}
+
+/* ------------------------ לוח שנה במסך צר ------------------------ */
+
+.dow-full { display: inline; }
+.dow-short { display: none; }
+
+@media (max-width: 640px) {
+  .dow-full { display: none; }
+  .dow-short { display: inline; }
+  .cal-dow div { padding: 7px 1px; font-size: 12px; }
+  .cal-day { min-height: 76px; padding: 4px 3px 20px; gap: 2px; }
+  .cal-day .dnum { flex-direction: column; align-items: flex-start; gap: 0; }
+  .cal-day .g { font-size: 14px; }
+  .cal-day .h { font-size: 9.5px; line-height: 1.15; }
+  .cal-day .hol { font-size: 8.5px; }
+  .cal-day .badge { font-size: 9.5px; padding: 1px 5px; }
+  .sale-chip { font-size: 9.5px; padding: 2px 3px; border-right-width: 2px; }
+  .sale-chip b { font-size: 10px; }
+  .sale-chip span { display: none; }
+  /* אין hover במסך מגע — הכפתור תמיד גלוי, בשקיפות עדינה */
+  .cal-add { display: flex; width: 17px; height: 17px; font-size: 12px; opacity: .6; bottom: 2px; left: 2px; }
+  .legend { font-size: 11.5px; gap: 10px; }
+  .btn { padding: 7px 11px; font-size: 13.5px; }
+  .btn.sm { padding: 5px 8px; font-size: 12px; }
+  table.tbl { font-size: 12.5px; }
+  .chart { height: 150px; }
+}
+
 .print-only { display: none; }
 @media print {
-  .sidebar, .topbar, .btn, .no-print { display: none !important; }
+  .sidebar, .topbar, .btn, .no-print, .nav-scrim { display: none !important; }
   .content { padding: 0; }
   .card { box-shadow: none; page-break-inside: avoid; }
   .print-only { display: block; }
@@ -2835,8 +2907,10 @@ function render(root, nav) {
   }
 
   root.appendChild(el('div.calendar', {}, [
-    el('div.cal-dow', {}, WEEKDAY_SHORT.map((d, i) =>
-      el('div', { text: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][i] }))),
+    el('div.cal-dow', {}, WEEKDAY_SHORT.map((short, i) => el('div', {}, [
+      el('span.dow-full', { text: ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'][i] }),
+      el('span.dow-short', { text: short }),
+    ]))),
     grid,
   ]));
 
@@ -4439,13 +4513,13 @@ function navigate(route, params = {}) {
   }
 }
 
-function renderNav() {
+function renderNav(closeDrawer) {
   const nav = el('nav.nav');
   for (const [key, r] of Object.entries(ROUTES)) {
     if (r.hidden) continue;
     nav.appendChild(el('a', {
       class: current.route === key ? 'active' : '',
-      onclick: () => navigate(key),
+      onclick: () => { closeDrawer(); navigate(key); },
     }, [el('span.ico', { text: r.icon }), r.label]));
   }
   return nav;
@@ -4457,27 +4531,36 @@ function renderShell() {
   const contentEl = el('div.content#content');
   const titleEl = el('h2', { text: ROUTES[current.route].title });
 
+  const app = el('div.app');
+  const closeDrawer = () => app.classList.remove('nav-open');
+  const toggleDrawer = () => app.classList.toggle('nav-open');
+
   const sidebar = el('aside.sidebar', {}, [
     el('div.brand', {}, [
       el('h1', { text: S.orgName || 'אופטיקה לכל כיס' }),
       el('p', { text: S.subtitle || '' }),
     ]),
-    renderNav(),
+    renderNav(closeDrawer),
     el('div.sidebar-foot', { text: 'מערכת ניהול מכירות משקפיים' }),
   ]);
 
-  document.body.appendChild(el('div.app', {}, [
-    sidebar,
-    el('main.main', {}, [
-      el('header.topbar', {}, [
-        titleEl,
-        el('div.spacer'),
-        el('button.btn.sm', { text: '📅 לוח שנה', onclick: () => navigate('calendar') }),
-        el('button.btn.sm', { text: '📊 דוחות', onclick: () => navigate('reports') }),
-      ]),
-      contentEl,
+  app.appendChild(el('div.nav-scrim', { onclick: closeDrawer }));
+  app.appendChild(sidebar);
+  app.appendChild(el('main.main', {}, [
+    el('header.topbar', {}, [
+      el('button.btn.sidebar-toggle', {
+        text: '☰', title: 'תפריט', 'aria-label': 'תפריט',
+        onclick: (e) => { e.stopPropagation(); toggleDrawer(); },
+      }),
+      titleEl,
+      el('div.spacer'),
+      el('button.btn.sm', { text: '📅 לוח שנה', onclick: () => navigate('calendar') }),
+      el('button.btn.sm', { text: '📊 דוחות', onclick: () => navigate('reports') }),
     ]),
+    contentEl,
   ]));
+
+  document.body.appendChild(app);
   return contentEl;
 }
 
