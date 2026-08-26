@@ -1,0 +1,213 @@
+@import 'tailwindcss';
+
+/* ===========================================================================
+   מערכת העיצוב של איגוד השיעורים
+   ---------------------------------------------------------------------------
+   הצבעים נדגמו מהלוגו עצמו (public/logo-igud.png): יין עמוק לרקע המגילה,
+   זהב לעיטורים, וקלף בהיר לשטח הכתיבה. אין כאן צבע שלא מופיע בלוגו.
+   =========================================================================== */
+
+@theme {
+  /* יין — צבע המותג הראשי, מהאליפסה שמאחורי המגילה */
+  --color-wine-50:  #FBF3F3;
+  --color-wine-100: #F5E2E2;
+  --color-wine-200: #E7BFBF;
+  --color-wine-300: #D08F8F;
+  --color-wine-400: #A85A5A;
+  --color-wine-500: #8A3535;
+  --color-wine-600: #762727;
+  --color-wine-700: #5A1E1E;
+  --color-wine-800: #3D1414;
+  --color-wine-900: #2A0E0E;
+  --color-wine-950: #1A0808;
+
+  /* זהב — העיטורים, המסגרת וידיות המגילה */
+  --color-gold-50:  #FCF8EC;
+  --color-gold-100: #F7EFD3;
+  --color-gold-200: #EFDFAB;
+  --color-gold-300: #E3CE93;
+  --color-gold-400: #D4B978;
+  --color-gold-500: #C9A96A;
+  --color-gold-600: #A6863F;
+  --color-gold-700: #83692F;
+  --color-gold-800: #5E4A21;
+  --color-gold-900: #3E3115;
+
+  /* קלף — שטח הכתיבה של המגילה, הרקע של המערכת */
+  --color-parchment-50:  #FEFDFA;
+  --color-parchment-100: #FBF8EF;
+  --color-parchment-200: #F6F1E3;
+  --color-parchment-300: #EDE4CE;
+  --color-parchment-400: #DFD2B4;
+
+  --color-ink: #2C2422;
+  --color-ink-soft: #6B5D58;
+
+  /* גופנים: פרנק רוהל לכותרות (סריף עברי, מתכתב עם אות הדפוס שבלוגו),
+     הידן לגוף הטקסט. נטענים ב-layout.tsx דרך Google Fonts. */
+  --font-display: 'Frank Ruhl Libre', 'David Libre', Georgia, serif;
+  --font-sans: 'Heebo', 'Segoe UI', system-ui, sans-serif;
+
+  --radius-card: 0.875rem;
+
+  /* צל חם ולא אפור, כדי לא לקרר את הקלף */
+  --shadow-card: 0 1px 2px rgb(61 20 20 / 0.06), 0 8px 24px -12px rgb(61 20 20 / 0.18);
+  --shadow-lift: 0 2px 6px rgb(61 20 20 / 0.08), 0 16px 40px -16px rgb(61 20 20 / 0.28);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-parchment-100);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* מספרים בעברית נקראים משמאל לימין גם בתוך משפט RTL */
+  .num {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-gold-600);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-gold-200);
+    color: var(--color-wine-900);
+  }
+}
+
+@layer components {
+  /* קלף — יחידת התוכן הבסיסית של המערכת */
+  .card {
+    background: var(--color-parchment-50);
+    border: 1px solid var(--color-parchment-300);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-interactive {
+    transition: box-shadow 160ms ease, transform 160ms ease, border-color 160ms ease;
+  }
+
+  .card-interactive:hover {
+    box-shadow: var(--shadow-lift);
+    border-color: var(--color-gold-300);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-interactive {
+      transition: none;
+    }
+    .card-interactive:hover {
+      transform: none;
+    }
+  }
+
+  /* קו זהב דק — המוטיב החוזר מהלוגו, מפריד בין אזורים */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(
+      to left,
+      transparent,
+      var(--color-gold-400) 20%,
+      var(--color-gold-400) 80%,
+      transparent
+    );
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.625rem;
+    font-weight: 500;
+    font-size: 0.9375rem;
+    line-height: 1.25rem;
+    transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: var(--color-wine-700);
+    color: var(--color-gold-100);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-wine-600);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-wine-700);
+    border: 1px solid var(--color-gold-400);
+  }
+
+  .btn-secondary:hover {
+    background: var(--color-gold-50);
+    border-color: var(--color-gold-600);
+  }
+
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  /* תג נושא / קהל / שפה */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+    background: var(--color-gold-50);
+    color: var(--color-wine-700);
+    border: 1px solid var(--color-gold-200);
+    white-space: nowrap;
+  }
+
+  .field {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-parchment-400);
+    background: var(--color-parchment-50);
+    font-size: 0.9375rem;
+    color: var(--color-ink);
+  }
+
+  .field:focus {
+    border-color: var(--color-gold-500);
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(201 169 106 / 0.22);
+  }
+
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-soft);
+    margin-bottom: 0.25rem;
+  }
+}
