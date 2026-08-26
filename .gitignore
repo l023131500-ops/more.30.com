@@ -4,3 +4,7 @@ node_modules/
 *.log
 .vercel
 package-lock.json
+
+# אפליקציית igud היא פרויקט npm אמיתי — הנעילה שלה כן נשמרת,
+# כדי שבניית Vercel תשחזר בדיוק את מה שנבנה כאן.
+!igud/package-lock.json
