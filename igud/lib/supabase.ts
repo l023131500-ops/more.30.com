@@ -1,7 +1,16 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+/**
+ * ברירת המחדל של הפרויקט. המפתח הזה הוא מפתח פרסום (publishable),
+ * הוא נשלח ממילא לכל דפדפן שנכנס לאתר, וכל ההגנה נשענת על RLS
+ * ועל חשיפת עמודות מצומצמת במסד. אין כאן סוד.
+ * משתני סביבה גוברים עליו, וכך אפשר להצביע על פרויקט אחר.
+ */
+const DEFAULT_URL = 'https://uhnrgujbdxhhmoxcjria.supabase.co';
+const DEFAULT_ANON_KEY = 'sb_publishable_UkI2clif5hA06LhbYaHODg_JgGWmWBJ';
+
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
 
 export const supabaseConfigured = Boolean(url && anonKey);
 
