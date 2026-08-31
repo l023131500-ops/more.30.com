@@ -4,6 +4,30 @@
 
 ---
 
+## הכתובות
+
+| מה | כתובת |
+|---|---|
+| האתר החי, מתעדכן בכל דחיפה לענף | https://igud-hashiurim-git-claude-igud-h-8be434-l023131500-ops-projects.vercel.app |
+| הכתובת הקבועה, אחרי החלפת ענף הייצור | https://igud-hashiurim.vercel.app |
+| מסך ניהול | /admin |
+| אזור אישי | /portal |
+| תיעוד ממשק | /api-docs |
+| הקוד | ענף `claude/igud-hashiurim`, תיקייה `igud/` |
+| מסד הנתונים | פרויקט Supabase `uhnrgujbdxhhmoxcjria` |
+
+הכתובת הקבועה עדיין מצביעה על הבנייה הראשונה. כדי להעביר אותה לענף
+העבודה: Vercel, פרויקט igud-hashiurim, Settings, Git, Production Branch,
+בוחרים `claude/igud-hashiurim` ושומרים. מאותו רגע כל דחיפה לענף
+מתפרסמת בכתובת הקבועה.
+
+### כניסה למסך הניהול
+
+שם משתמש `l023131500@gmail.com` או `0533116358`, סיסמה `EUEU1234`.
+מומלץ להחליף את הסיסמה מיד, במסך הניהול או ב-Supabase.
+
+---
+
 ## מה כבר עובד
 
 ### מסד הנתונים
