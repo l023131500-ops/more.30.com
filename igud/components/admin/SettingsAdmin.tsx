@@ -6,6 +6,7 @@ import { SITE } from '@/lib/site';
 import { IconCheck, IconCopy, IconLink } from '../Icons';
 import { Panel, Toast } from './ui';
 import NedarimPanel from './NedarimPanel';
+import YemotFiles from './YemotFiles';
 
 type Group = Record<string, unknown>;
 type Settings = Record<string, Group>;
@@ -226,6 +227,8 @@ export default function SettingsAdmin() {
           />
         </div>
       </Panel>
+
+      <YemotFiles rootExt={text(settings.yemot, 'rootExt') || '1'} />
 
       <NedarimPanel
         settings={settings.nedarim as Record<string, string>}
