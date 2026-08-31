@@ -1,6 +1,6 @@
 import { publicClient } from '@/lib/supabase';
 import { goHome, hangup, read, respond, say, yemotParams } from '@/lib/yemot';
-import { describeLesson, numberedMenu, topCities, topTopics, upcomingFor } from '@/lib/ivr';
+import { describeLesson, pagedChoice, topCities, topTopics, upcomingFor } from '@/lib/ivr';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +16,6 @@ async function handle(request: Request) {
   const client = publicClient();
 
   const mode = params.mode || '';
-  const page = Number(params.page || '0');
 
   if (!mode) {
     return respond(
@@ -46,31 +45,20 @@ async function handle(request: Request) {
     const cities = await topCities(client);
     if (!cities.length) return respond(say('אין כרגע שיעורים במאגר'), goHome());
 
-    if (!params.pick) {
-      const menu = numberedMenu(cities, page);
+    const choice = pagedChoice(params, 'city', cities);
+    if ('askText' in choice) {
       return respond(
         say('בחירת עיר'),
-        read(menu.text, 'pick', { min: 1, max: 1 }),
+        read(choice.askText, choice.varName, { min: 1, max: 1 }),
       );
     }
 
-    if (params.pick === '0') {
-      const next = new URL(request.url);
-      next.searchParams.set('page', String(page + 1));
-      next.searchParams.delete('pick');
-      const menu = numberedMenu(cities, page + 1);
-      return respond(read(menu.text, 'pick', { min: 1, max: 1 }));
-    }
-
-    const city = numberedMenu(cities, page).slice[Number(params.pick) - 1];
-    if (!city) return respond(say('בחירה לא תקינה'), goHome());
-
-    const rows = await upcomingFor(client, { city }, 5);
+    const rows = await upcomingFor(client, { city: choice.value }, 5);
     if (!rows.length) {
-      return respond(say(`לא נמצאו שיעורים קרובים ב${city}`), goHome());
+      return respond(say(`לא נמצאו שיעורים קרובים ב${choice.value}`), goHome());
     }
     return respond(
-      say(`שיעורים קרובים ב${city}`),
+      say(`שיעורים קרובים ב${choice.value}`),
       say(...rows.map((row, i) => `${i + 1}. ${describeLesson(row)}`)),
       goHome(),
     );
@@ -81,28 +69,20 @@ async function handle(request: Request) {
     const topics = await topTopics(client);
     if (!topics.length) return respond(say('אין כרגע שיעורים במאגר'), goHome());
 
-    if (!params.pick) {
-      const menu = numberedMenu(topics, page);
+    const choice = pagedChoice(params, 'topic', topics);
+    if ('askText' in choice) {
       return respond(
         say('בחירת נושא'),
-        read(menu.text, 'pick', { min: 1, max: 1 }),
+        read(choice.askText, choice.varName, { min: 1, max: 1 }),
       );
     }
 
-    if (params.pick === '0') {
-      const menu = numberedMenu(topics, page + 1);
-      return respond(read(menu.text, 'pick', { min: 1, max: 1 }));
-    }
-
-    const topic = numberedMenu(topics, page).slice[Number(params.pick) - 1];
-    if (!topic) return respond(say('בחירה לא תקינה'), goHome());
-
-    const rows = await upcomingFor(client, { topic }, 5);
+    const rows = await upcomingFor(client, { topic: choice.value }, 5);
     if (!rows.length) {
-      return respond(say(`לא נמצאו שיעורים קרובים בנושא ${topic}`), goHome());
+      return respond(say(`לא נמצאו שיעורים קרובים בנושא ${choice.value}`), goHome());
     }
     return respond(
-      say(`שיעורים קרובים בנושא ${topic}`),
+      say(`שיעורים קרובים בנושא ${choice.value}`),
       say(...rows.map((row, i) => `${i + 1}. ${describeLesson(row)}`)),
       goHome(),
     );

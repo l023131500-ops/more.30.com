@@ -1,6 +1,6 @@
 import { serviceClient } from '@/lib/supabase';
 import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
-import { numberedMenu, topCities, topTopics } from '@/lib/ivr';
+import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,30 +15,30 @@ async function handle(request: Request) {
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = await serviceClient();
 
-  if (!params.city) {
-    const cities = await topCities(client, 30);
-    const menu = numberedMenu(cities, Number(params.page || '0'));
+  const cities = await topCities(client, 40);
+  const cityChoice = pagedChoice(params, 'city', cities);
+  if ('askText' in cityChoice) {
     return respond(
       say('הצטרפות כמגיד שיעור'),
       say('נאסוף כמה פרטים, ונציג מהאיגוד יחזור אליכם להשלמת השאלון'),
-      read(`באיזו עיר אתם גרים. ${menu.text}`, 'city', { min: 1, max: 1 }),
+      read(`באיזו עיר אתם גרים. ${cityChoice.askText}`, cityChoice.varName, { min: 1, max: 1 }),
     );
   }
 
-  if (!params.topic) {
-    const topics = await topTopics(client, 20);
-    const menu = numberedMenu(topics);
-    return respond(read(`באיזה נושא תרצו למסור שיעור. ${menu.text}`, 'topic', { min: 1, max: 1 }));
+  const topics = await topTopics(client, 30);
+  const topicChoice = pagedChoice(params, 'topic', topics);
+  if ('askText' in topicChoice) {
+    return respond(
+      read(`באיזה נושא תרצו למסור שיעור. ${topicChoice.askText}`, topicChoice.varName, { min: 1, max: 1 }),
+    );
   }
 
   if (!params.audience) {
     return respond(read('למי מתאים לכם למסור. לגברים הקישו 1. לנשים הקישו 2. לשניהם הקישו 3', 'audience', { min: 1, max: 1 }));
   }
 
-  const cities = await topCities(client, 30);
-  const topics = await topTopics(client, 20);
-  const city = numberedMenu(cities, Number(params.page || '0')).slice[Number(params.city) - 1] || null;
-  const topic = numberedMenu(topics).slice[Number(params.topic) - 1] || null;
+  const city = cityChoice.value;
+  const topic = topicChoice.value;
   const audience = ({ '1': 'גברים', '2': 'נשים', '3': 'גברים ונשים' } as Record<string, string>)[params.audience] || null;
 
   await client.from('igud_requests').insert({

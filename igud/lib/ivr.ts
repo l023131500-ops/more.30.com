@@ -130,3 +130,36 @@ export async function keywordSearch(client: SupabaseClient, text: string, limit 
     .slice(0, limit)
     .map((r) => r.row);
 }
+
+/**
+ * בחירה מרשימה ארוכה בשיחה טלפונית.
+ *
+ * ימות המשיח מחזירה בכל פנייה את כל המשתנים שכבר נקראו, אבל לא פרמטרים
+ * שהמצאנו בעצמנו. לכן מספר העמוד מקודד בתוך שם המשתנה: pick0, pick1 וכן
+ * הלאה. הקשה על אפס פותחת את העמוד הבא ונקראת למשתנה הבא בתור.
+ */
+export function pagedChoice(
+  params: Record<string, string>,
+  prefix: string,
+  items: string[],
+  pageSize = 9,
+): { value: string } | { askText: string; varName: string } {
+  let page = 0;
+  while (params[`${prefix}${page}`]) page += 1;
+
+  // אין עדיין בחירה בעמוד הזה: מציגים אותו
+  const current = page > 0 ? params[`${prefix}${page - 1}`] : null;
+
+  if (current && current !== '0') {
+    const chosen = items.slice((page - 1) * pageSize, page * pageSize)[Number(current) - 1];
+    if (chosen) return { value: chosen };
+  }
+
+  const menu = numberedMenu(items, page, pageSize);
+  if (!menu.slice.length) {
+    // חזרה לתחילת הרשימה כשהגענו לסופה
+    const first = numberedMenu(items, 0, pageSize);
+    return { askText: first.text, varName: `${prefix}${page}` };
+  }
+  return { askText: menu.text, varName: `${prefix}${page}` };
+}
