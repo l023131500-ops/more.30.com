@@ -42,7 +42,7 @@ export function buildPlan(rows) {
 
   for (const item of kept) {
     const { c } = item;
-    if (c.weekly) { put(`${root}/0`, 'החיזוק השבועי — מוצאי שבת', item); continue; }
+    if (c.weekly && cfg.splitWeekly) { put(`${root}/0`, 'החיזוק השבועי — מוצאי שבת', item); continue; }
     if (c.cat === 1) {
       const ci = CHUMASHIM.findIndex((x) => x.name === c.sub);
       const pi = CHUMASHIM[ci].parshiot.indexOf(c.parsha);
@@ -91,9 +91,13 @@ export function buildPlan(rows) {
 
   // תפריטי הביניים, עם שם לכל אחד — כדי שהעץ יהיה קריא לאישור
   const menus = new Map([[root, 'חיזוקים קצרים']]);
-  menus.set(`${root}/0`, 'החיזוק השבועי — מוצאי שבת');
+  if (cfg.splitWeekly) menus.set(`${root}/0`, 'החיזוק השבועי — מוצאי שבת');
   menus.set(`${root}/1`, 'פרשות השבוע');
-  CHUMASHIM.forEach((c, i) => menus.set(`${root}/1/${i + 1}`, `חומש ${c.name}`));
+  CHUMASHIM.forEach((c, i) => {
+    menus.set(`${root}/1/${i + 1}`, `חומש ${c.name}`);
+    // כל פרשה מקבלת שלוחה משלה, לפי סדר הפרשיות בחומש
+    c.parshiot.forEach((p, j) => menus.set(`${root}/1/${i + 1}/${j + 1}`, `פרשת ${p}`));
+  });
   menus.set(`${root}/2`, 'מועדים וזמנים');
   MOADIM.forEach((m, i) => menus.set(`${root}/2/${i + 1}`, m.name));
   for (const t of TOPICS) if (t.key >= 3) menus.set(`${root}/${t.key}`, t.name);

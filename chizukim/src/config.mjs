@@ -33,6 +33,10 @@ export const cfg = {
   minSeconds: Number(process.env.MIN_SECONDS || 30),
   // כמה קבצים לכל תיקייה לפני פיצול ל"חלק א׳ / חלק ב׳"
   maxPerFolder: Number(process.env.MAX_PER_FOLDER || 60),
+  // האם להפריד את החיזוק השבועי לשלוחה משלו.
+  // כרגע לא — ההקלטות רק מסומנות ב-out/weekly.txt לבדיקה.
+  // אחרי שיתברר שזה אכן רב אחר, מדליקים כאן ומריצים plan מחדש.
+  splitWeekly: process.env.SPLIT_WEEKLY === '1',
 };
 
 mkdirSync(OUT, { recursive: true });

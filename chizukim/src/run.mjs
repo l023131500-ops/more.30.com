@@ -29,10 +29,19 @@ async function cmdPlan() {
     join(OUT, 'skipped.txt'),
     plan.skipped.map((s) => `${s.seq}\t${s.why}\t${s.topic || ''}`).join('\n'),
   );
+  // ההקלטות השבועיות — מסומנות לבדיקה, לא מופרדות לשלוחה נפרדת
+  const weekly = plan.files.filter((f) => f.weekly);
+  writeFileSync(
+    join(OUT, 'weekly.txt'),
+    ['# הקלטות שנפתחות ב"שבוע טוב" — לבדיקה אם זה רב אחר',
+     '# seq\tשלוחה\tכותרת', ''].join('\n')
+    + weekly.map((f) => `${f.seq}\t${f.folder}\t${f.title}`).join('\n'),
+  );
   console.log('\n' + renderTree(plan) + '\n');
   log(`סה"כ ${plan.stats.total} רשומות · ${plan.stats.uploading} להעלאה · ${plan.stats.skipped} מדולגות`);
-  log(`יומי ${plan.stats.daily} · שבועי ${plan.stats.weekly} · ${plan.stats.folders} תיקיות`);
-  log(`נשמר: ${PLAN_FILE} · out/tree.txt · out/skipped.txt`);
+  log(`מתוכן ${plan.stats.weekly} נפתחות ב"שבוע טוב" (מסומנות ב-out/weekly.txt, לא מופרדות)`);
+  log(`${plan.stats.folders} תיקיות`);
+  log(`נשמר: ${PLAN_FILE} · out/tree.txt · out/skipped.txt · out/weekly.txt`);
 }
 
 async function cmdVerify() {
