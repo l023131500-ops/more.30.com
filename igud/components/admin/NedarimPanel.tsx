@@ -5,6 +5,7 @@ import { browserClient } from '@/lib/supabase';
 import { FORM_LAYOUTS, FORM_IDS, type FormId } from '@/lib/nedarim-forms';
 import { IconCheck, IconCopy } from '../Icons';
 import { Panel } from './ui';
+import NedarimInbox from './NedarimInbox';
 
 /**
  * מסך ההתממשקות לנדרים פלוס.
@@ -159,6 +160,7 @@ export default function NedarimPanel({
   };
 
   return (
+    <>
     <Panel
       title="נדרים פלוס"
       description="קליטת הטפסים שמולאו בעמדות ובאתר, ישירות מהמערכת של נדרים פלוס."
@@ -361,19 +363,31 @@ export default function NedarimPanel({
         </div>
       )}
 
-      {/* ------- כתובות ------- */}
+      {/* ------- הכתובת שנמסרת לנדרים פלוס ------- */}
       <div className="mt-5 space-y-3 border-t border-parch-200 pt-5">
+        <h4 className="text-[0.95rem] font-semibold text-ink-800">הכתובת שמוסרים לנדרים פלוס</h4>
+        <p className="text-[0.78rem] text-ink-500">
+          כתובת אחת לשני הכיוונים. הסוד מוטמע בה, ולכן אין צורך בכותרות מיוחדות —
+          מספיק להעתיק ולמסור כמו שהיא.
+        </p>
         <CopyField
-          label="כתובת ה-callback למסירה לנדרים פלוס"
-          value={`${origin}/api/nedarim/callback`}
-          hint="לדחיפת טפסים בזמן אמת. יש לצרף את הסוד בכותרת x-igud-secret או בשדה secret."
+          label="כתובת ה-webhook"
+          value={`${origin}/api/nedarim/webhook?key=${settings.callbackSecret || '<הסוד>'}`}
+          hint="הם שולחים לכאן POST עם JSON, ומקבלים בחזרה תשובה באותה כתובת"
         />
         <CopyField
-          label="כתובת בדיקה"
-          value={`${origin}/api/nedarim/callback?ping=1`}
-          hint="מחזירה אישור חיים בלי לכתוב נתונים"
+          label="כתובת בדיקת חיים"
+          value={`${origin}/api/nedarim/webhook?ping=1`}
+          hint="מחזירה את רשימת הסוגים הנתמכים ואת שלוש עשרה העמודות, בלי לכתוב דבר"
         />
+        <p className="text-[0.76rem] text-ink-500">
+          הכתובת הישנה <code dir="ltr">/api/nedarim/callback</code> ממשיכה לעבוד,
+          ומפנה לאותו טיפול בדיוק.
+        </p>
       </div>
     </Panel>
+
+    <NedarimInbox />
+    </>
   );
 }

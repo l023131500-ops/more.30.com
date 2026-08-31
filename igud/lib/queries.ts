@@ -10,6 +10,12 @@ export const PAGE_SIZE = 12;
  */
 export const TEACHER_PUBLIC_COLUMNS = 'id, slug, full_name, honorific, suffix, city, neighborhood, photo_url, logo_url, bio, background, occupation, organization, languages, topics, extra_skills, speech_style, status';
 
+/**
+ * העמודות של תצוגת כרטיסי השיעור. מרוכזות כאן כדי שכל צרכן — הדשבורד,
+ * הממשק הציבורי וה-webhook של נדרים פלוס — יבקש בדיוק את אותו סט.
+ */
+export const LESSON_CARD_COLUMNS = 'id, public_no, title, topic, topic_other, topics, lesson_character, speech_style, description, audience_gender, audience_styles, language, language_other, lesson_style, lesson_style_other, teacher_id, teacher_name, teacher_honorific, teacher_suffix, teacher_occupation, organization, venue_id, venue_name, venue_type, city, neighborhood, street, house_no, location_exact, geo_lat, geo_lng, schedule_kind, frequency, season_note, broadcast, broadcast_url, recording_url, logo_url, image_url, contact_name, featured, views, published_at, status, weekdays, next_at, schedule';
+
 export const VENUE_PUBLIC_COLUMNS = 'id, slug, name, kind, nusach, city, neighborhood, street, house_no, location_exact, gabbai_name, phone, logo_url, photo_url, about, geo_lat, geo_lng, status';
 
 /** בונה שאילתת שיעורים מסוננת על תצוגת הכרטיסים. */
