@@ -12,6 +12,7 @@
     "import:4320": "node scripts/import-nedarim.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.122.0",
     "@supabase/supabase-js": "2.58.0",
     "next": "15.5.24",
     "react": "19.1.1",
