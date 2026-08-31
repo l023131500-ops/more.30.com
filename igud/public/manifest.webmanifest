@@ -1,0 +1,16 @@
+{
+  "name": "איגוד השיעורים",
+  "short_name": "איגוד השיעורים",
+  "description": "מאגר ארצי של זמני שיעורי תורה",
+  "lang": "he",
+  "dir": "rtl",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF6EC",
+  "theme_color": "#4A1818",
+  "icons": [
+    { "src": "/brand/mark-180.webp", "sizes": "180x180", "type": "image/webp" },
+    { "src": "/brand/mark-256.webp", "sizes": "256x256", "type": "image/webp" },
+    { "src": "/brand/mark-512.webp", "sizes": "512x512", "type": "image/webp", "purpose": "any" }
+  ]
+}
