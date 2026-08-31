@@ -49,8 +49,8 @@ function Section({ id, title, lead, children }: {
 
 const TOC = [
   { id: 'public', label: 'ממשק ציבורי לקריאה' },
-  { id: 'nedarim-in', label: 'קליטה מנדרים פלוס' },
-  { id: 'nedarim-out', label: 'פרסום אל נדרים פלוס' },
+  { id: 'nedarim-in', label: 'callback בזמן אמת' },
+  { id: 'nedarim-out', label: 'משיכת רשומות' },
   { id: 'yemot', label: 'המערכת הקולית' },
   { id: 'voice-agent', label: 'הסוכן הקולי' },
   { id: 'excel', label: 'ייבוא וייצוא אקסל' },
@@ -190,22 +190,29 @@ x-igud-secret: <הסוד ממסך הניהול>
 
       <Section
         id="nedarim-out"
-        title="פרסום שיעורים אל נדרים פלוס"
-        lead="שליחה יזומה של השיעורים המפורסמים אל נדרים פלוס. דורשת הרשאת מנהל, ואפשר להריץ אותה גם כמשימה מתוזמנת."
+        title="משיכת רשומות מנדרים פלוס"
+        lead="הדרך הרשמית לקלוט את מה שמולא בטפסים. דורשת הרשאת מנהל, ואפשר להריץ אותה גם כמשימה מתוזמנת."
       >
-        <Endpoint method="POST" path="/api/nedarim/push?since=2026-01-01&limit=200">
-          שולח את השיעורים שפורסמו מאז התאריך שנמסר. פרטי החיבור, מספר המוסד
-          וה-ApiValid נלקחים ממסך ההגדרות.
+        <Endpoint method="POST" path="/api/nedarim/pull">
+          פונה אל נדרים פלוס ומושך את הרשומות שנוספו מאז הסנכרון הקודם.
+          בלי גוף — מסנכרן את כל הטפסים הפעילים.
         </Endpoint>
-        <Code>{`{
-  "Mosad": "<מספר מוסד>",
-  "ApiValid": "<מפתח>",
-  "Action": "IgudHashiurimSync",
-  "Lessons": [
-    { "ExternalId": "…", "Title": "דף יומי", "Rabbi": "…", "City": "…",
-      "Schedule": "יום ראשון 19:30 | יום שני 19:30", "Url": "${base}/lesson/…" }
-  ]
-}`}</Code>
+        <Code>{`{ "form": "4320", "reset": false }`}</Code>
+
+        <p className="text-[0.88rem] leading-relaxed text-ink-700">
+          מאחורי הקלעים נשלחת פנייה אל{' '}
+          <code dir="ltr">Forms/Manage.aspx</code> עם{' '}
+          <code dir="ltr">Action=GetJson</code>, מספר המוסד ומפתח ה-API
+          (<code dir="ltr">ApiPassword</code>, מתחיל ב-<code dir="ltr">npk_</code>).
+          המשיכה מתקדמת בסמן <code dir="ltr">LastId</code>, ולכן כל סנכרון מביא
+          רק את החדש. רשומה שכבר נקלטה מתעדכנת ואינה נכפלת.
+        </p>
+
+        <Endpoint method="POST" path="/api/nedarim/probe">
+          בדיקת שדות: מושכת רשומה אחת ומציגה מה מכיל כל{' '}
+          <code dir="ltr">FieldN</code>, כדי לאמת את המספור לפני סנכרון מלא.
+          קוראת בלבד ואינה כותבת למסד.
+        </Endpoint>
       </Section>
 
       <Section

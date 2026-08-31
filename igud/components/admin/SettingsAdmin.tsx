@@ -5,14 +5,19 @@ import { browserClient } from '@/lib/supabase';
 import { SITE } from '@/lib/site';
 import { IconCheck, IconCopy, IconLink } from '../Icons';
 import { Panel, Toast } from './ui';
+import NedarimPanel from './NedarimPanel';
 
-type Settings = Record<string, Record<string, string>>;
+type Group = Record<string, unknown>;
+type Settings = Record<string, Group>;
 
 const DEFAULTS: Settings = {
   yemot: { system: '', apiKey: '', password: '', rootExt: '1', enabled: 'false' },
-  nedarim: { mosadId: '', apiValid: '', apiKey: '', callbackSecret: '', formIds: '4320,4063,4018,4357' },
+  nedarim: { mosadId: '', apiPassword: '', apiValid: '', callbackSecret: '', forms: {} },
   ai: { apiKey: '', model: 'claude-opus-5' },
 };
+
+/** קריאת שדה טקסט מתוך קבוצת הגדרות, בלי להניח על הטיפוס. */
+const text = (group: Group, field: string) => String(group?.[field] ?? '');
 
 function Row({
   label, value, onChange, hint, secret, dir = 'ltr',
@@ -86,7 +91,7 @@ export default function SettingsAdmin() {
       for (const row of data || []) {
         next[row.key as string] = {
           ...(DEFAULTS[row.key as string] || {}),
-          ...(row.value as Record<string, string>),
+          ...(row.value as Group),
         };
       }
       setSettings(next);
@@ -170,27 +175,27 @@ export default function SettingsAdmin() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Row
             label="מספר המערכת"
-            value={settings.yemot.system}
+            value={text(settings.yemot, 'system')}
             onChange={(v) => set('yemot', 'system', v)}
             hint="מספר הקו בימות המשיח, לדוגמה 0773137770"
           />
           <Row
             label="מפתח API"
-            value={settings.yemot.apiKey}
+            value={text(settings.yemot, 'apiKey')}
             onChange={(v) => set('yemot', 'apiKey', v)}
             secret
             hint="מפתח ה-API מהגדרות המערכת. אם אין מפתח, אפשר למלא סיסמה בשדה הבא."
           />
           <Row
             label="סיסמת המערכת"
-            value={settings.yemot.password}
+            value={text(settings.yemot, 'password')}
             onChange={(v) => set('yemot', 'password', v)}
             secret
             hint="בשימוש רק אם לא הוגדר מפתח API"
           />
           <Row
             label="שלוחת הבסיס"
-            value={settings.yemot.rootExt}
+            value={text(settings.yemot, 'rootExt')}
             onChange={(v) => set('yemot', 'rootExt', v)}
             hint="השלוחה שתחתיה ייבנו התפריטים. כל כתיבה מוגבלת לשלוחה הזו בלבד."
           />
@@ -222,47 +227,29 @@ export default function SettingsAdmin() {
         </div>
       </Panel>
 
-      <Panel
-        title="נדרים פלוס"
-        description="קליטת טפסים שמולאו בעמדות, ופרסום שיעורים חזרה למערכת."
-        actions={
-          <button type="button" onClick={() => save('nedarim', true)} disabled={busy} className="btn btn-primary !py-2 !text-[0.82rem]">
-            שמירה
-          </button>
-        }
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="מספר מוסד" value={settings.nedarim.mosadId} onChange={(v) => set('nedarim', 'mosadId', v)} />
-          <Row label="ApiValid" value={settings.nedarim.apiValid} onChange={(v) => set('nedarim', 'apiValid', v)} secret />
-          <Row label="מפתח API" value={settings.nedarim.apiKey} onChange={(v) => set('nedarim', 'apiKey', v)} secret />
-          <Row
-            label="סוד ה-callback"
-            value={settings.nedarim.callbackSecret}
-            onChange={(v) => set('nedarim', 'callbackSecret', v)}
-            secret
-            hint="מחרוזת שתימסר לנדרים פלוס ותיבדק בכל פנייה"
-          />
-          <Row
-            label="מספרי הטפסים"
-            value={settings.nedarim.formIds}
-            onChange={(v) => set('nedarim', 'formIds', v)}
-            hint="מופרדים בפסיק"
-          />
-        </div>
-
-        <div className="mt-5 space-y-3 border-t border-parch-200 pt-5">
-          <CopyField
-            label="כתובת ה-callback למסירה לנדרים פלוס"
-            value={`${origin}/api/nedarim/callback`}
-            hint="נדרים פלוס שולחים לכאן כל טופס שמולא. יש לצרף את הסוד בכותרת x-igud-secret או בשדה secret."
-          />
-          <CopyField
-            label="כתובת בדיקה"
-            value={`${origin}/api/nedarim/callback?ping=1`}
-            hint="פנייה לכתובת הזו מחזירה אישור חיים בלי לכתוב נתונים"
-          />
-        </div>
-      </Panel>
+      <NedarimPanel
+        settings={settings.nedarim as Record<string, string>}
+        forms={(settings.nedarim.forms || {}) as Record<string, Record<string, string>>}
+        origin={origin}
+        busy={busy}
+        onChange={(field, value) => set('nedarim', field, value)}
+        onFormChange={(form, field, value) =>
+          setSettings((prev) => {
+            const forms = (prev.nedarim.forms || {}) as Record<string, Record<string, string>>;
+            return {
+              ...prev,
+              nedarim: {
+                ...prev.nedarim,
+                forms: { ...forms, [form]: { ...(forms[form] || {}), [field]: value } },
+              },
+            };
+          })}
+        onSave={() => void save('nedarim', true)}
+        notify={(msg, tone) => {
+          if (tone === 'error') { setError(msg); window.setTimeout(() => setError(''), 6000); }
+          else { setMessage(msg); window.setTimeout(() => setMessage(''), 4000); }
+        }}
+      />
 
       <Panel
         title="סוכן AI קולי"
@@ -274,8 +261,8 @@ export default function SettingsAdmin() {
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Row label="מפתח API" value={settings.ai.apiKey} onChange={(v) => set('ai', 'apiKey', v)} secret />
-          <Row label="דגם" value={settings.ai.model} onChange={(v) => set('ai', 'model', v)} />
+          <Row label="מפתח API" value={text(settings.ai, 'apiKey')} onChange={(v) => set('ai', 'apiKey', v)} secret />
+          <Row label="דגם" value={text(settings.ai, 'model')} onChange={(v) => set('ai', 'model', v)} />
         </div>
       </Panel>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { serviceClient } from '@/lib/supabase';
 import { parseTime, parseDate, DAY_SLOTS } from '@/lib/nedarim.js';
+import { layoutOf, parseRecords } from '@/lib/nedarim-forms';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,7 +14,12 @@ export const dynamic = 'force-dynamic';
  *
  * מבנה הפנייה הנתמך (JSON או form):
  *   FormId  — מספר הטופס: 4320, 4063, 4018 או 4357
- *   Data    — אובייקט עם שדות הטופס, בשמות של נדרים פלוס
+ *   Data    — אובייקט עם שדות הטופס
+ *
+ * שני מבנים נתמכים לשדות: שמות מפורשים (RabbiName, City וכדומה), או
+ * עמודות Field1..FieldN כפי שהן חוזרות מה-API של הטפסים. במבנה השני
+ * הפירוש נעשה באותם מנתחים שמשרתים את המשיכה מה-API ואת הייבוא מקובץ,
+ * וכך אין שתי גרסאות של אותם כללים.
  */
 
 interface Settings { callbackSecret?: string }
@@ -97,6 +103,11 @@ function lessonFromForm(data: Record<string, unknown>) {
   };
 }
 
+/** האם הגוף בנוי מעמודות Field1..FieldN של ה-API? */
+function isFieldRecord(data: Record<string, unknown>): boolean {
+  return Object.keys(data).some((key) => /^Field\d+$/.test(key));
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   if (url.searchParams.get('ping')) {
@@ -126,10 +137,13 @@ export async function POST(request: Request) {
 
     const formId = str(body.FormId || body.formId || body.form);
     const data = (body.Data || body.data || body) as Record<string, unknown>;
-    const externalId = str(data.Id || data.id || body.Id || body.TransactionId) || null;
+    const externalId = str(data.ID || data.Id || data.id || body.ID || body.Id) || null;
 
     if (formId === '4320' || str(data.type) === 'lesson_update') {
-      const lesson = lessonFromForm(data);
+      const layout = layoutOf('4320')!;
+      const lesson = isFieldRecord(data)
+        ? (parseRecords([data as Record<string, string>], layout)[0] || {}) as ReturnType<typeof lessonFromForm>
+        : lessonFromForm(data);
       if (!lesson.teacher_name && !lesson.venue_name) {
         return NextResponse.json({ error: 'חסרים פרטי הרב והמקום' }, { status: 400 });
       }
@@ -148,16 +162,19 @@ export async function POST(request: Request) {
 
     if (formId === '4063' || formId === '4018') {
       const kind = formId === '4063' ? 'open_lesson' : 'maggid';
-      const { data: result, error } = await client.rpc('igud_import_requests', {
-        p_kind: kind,
-        payload: [{
+      const item = isFieldRecord(data)
+        ? parseRecords([data as Record<string, string>], layoutOf(formId)!)[0]
+        : {
           contact_name: str(data.Name || data.ContactName || data.FullName),
           phone: str(data.Tel || data.Phone),
           email: str(data.Mail || data.Email),
           city: str(data.City),
           payload: data,
           external_id: externalId,
-        }],
+        };
+      const { data: result, error } = await client.rpc('igud_import_requests', {
+        p_kind: kind,
+        payload: [item],
       });
       if (error) throw new Error(error.message);
 
@@ -169,13 +186,17 @@ export async function POST(request: Request) {
     }
 
     if (formId === '4357') {
-      const { data: result, error } = await client.rpc('igud_import_subscribers', {
-        payload: [{
+      const item = isFieldRecord(data)
+        ? parseRecords([data as Record<string, string>], layoutOf('4357')!)[0]
+        : {
           full_name: str(data.Name || data.FirstName),
           phone: str(data.Tel || data.Phone),
           email: str(data.Mail || data.Email),
           wants: [], filters: { query: str(data.Search) }, partner: false,
-        }],
+          external_id: externalId,
+        };
+      const { data: result, error } = await client.rpc('igud_import_subscribers', {
+        payload: [item],
       });
       if (error) throw new Error(error.message);
       return NextResponse.json({ ok: true, form: formId, result });
