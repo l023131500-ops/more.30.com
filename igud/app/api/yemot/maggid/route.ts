@@ -1,4 +1,4 @@
-import { serviceClient } from '@/lib/supabase';
+import { publicClient } from '@/lib/supabase';
 import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
 
@@ -13,7 +13,7 @@ const digits = (v: string) => String(v || '').replace(/\D/g, '');
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
-  const client = await serviceClient();
+  const client = publicClient();
 
   const cities = await topCities(client, 40);
   const cityChoice = pagedChoice(params, 'city', cities);
@@ -41,23 +41,23 @@ async function handle(request: Request) {
   const topic = topicChoice.value;
   const audience = ({ '1': 'גברים', '2': 'נשים', '3': 'גברים ונשים' } as Record<string, string>)[params.audience] || null;
 
-  await client.from('igud_requests').insert({
-    kind: 'maggid',
-    contact_name: `פנייה טלפונית ${phone}`,
-    phone,
-    city,
-    payload: { topics: topic ? [topic] : [], audienceGender: audience, viaVoice: true },
-    status: 'new',
-    source: 'yemot',
-    source_ref: params.ApiCallId || null,
+  const { error } = await client.rpc('igud_submit_request', {
+    p_kind: 'maggid',
+    payload: {
+      contact_name: `פנייה טלפונית ${phone}`,
+      phone,
+      city,
+      source: 'yemot',
+      source_ref: params.ApiCallId || null,
+      details: { topics: topic ? [topic] : [], audienceGender: audience, viaVoice: true },
+    },
   });
-
-  await client.from('igud_audit').insert({
-    actor: `yemot:${phone}`,
-    action: 'yemot_request',
-    entity: 'igud_requests',
-    meta: { kind: 'maggid', city, topic },
-  });
+  if (error) {
+    return respond(
+      say('אירעה תקלה בשמירת הפרטים. נא לנסות שוב מאוחר יותר'),
+      hangup(),
+    );
+  }
 
   return respond(
     say('הפרטים נקלטו. תודה רבה'),

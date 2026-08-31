@@ -1,4 +1,4 @@
-import { serviceClient } from '@/lib/supabase';
+import { publicClient } from '@/lib/supabase';
 import { goHome, hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { describeLesson, numberedMenu } from '@/lib/ivr';
 import { DAY_SLOTS } from '@/lib/nedarim.js';
@@ -12,6 +12,10 @@ const digits = (v: string) => String(v || '').replace(/\D/g, '');
  *
  * הזיהוי לפי מספר הטלפון של המתקשר, כפי שנשמר בפרטי הקשר של השיעור.
  * מהלך: בחירת שיעור -> בחירת יום -> שעה חדשה בארבע ספרות -> שמירה.
+ *
+ * הבדיקה עצמה יושבת במסד, בפונקציות igud_ivr_lessons ו-igud_ivr_set_time:
+ * הן מחזירות ומעדכנות אך ורק שיעורים מפורסמים שמספר הקשר שלהם הוא מספר
+ * המתקשר. כך אין צורך בחשבון בעל הרשאות מלאות בנתיב טלפוני שאינו מאומת.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
@@ -24,18 +28,10 @@ async function handle(request: Request) {
     );
   }
 
-  const client = await serviceClient();
+  const client = publicClient();
 
-  // שיעורים ששויכו למספר הזה
-  const { data: rows } = await client
-    .from('igud_lessons')
-    .select('id, title, topic, topics, teacher_name, venue_name, city, contact_phone, status')
-    .limit(200);
-
-  const mine = (rows || []).filter((row) => {
-    const stored = digits(row.contact_phone as string);
-    return stored.length >= 9 && stored.slice(-9) === phone.slice(-9);
-  });
+  const { data: rows } = await client.rpc('igud_ivr_lessons', { p_phone: phone });
+  const mine = (rows || []) as { id: string; title: string | null; topic: string | null }[];
 
   if (!mine.length) {
     return respond(
@@ -89,35 +85,21 @@ async function handle(request: Request) {
   const time = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 
   /* ---------- שמירה ---------- */
-  const { data: existing } = await client
-    .from('igud_occurrences')
-    .select('id')
-    .eq('lesson_id', lesson.id)
-    .eq('day_label', slot.label)
-    .maybeSingle();
-
-  if (existing) {
-    await client
-      .from('igud_occurrences')
-      .update({ time_of_day: time, note: null })
-      .eq('id', existing.id);
-  } else {
-    await client.from('igud_occurrences').insert({
-      lesson_id: lesson.id,
-      weekday: slot.weekday,
-      day_label: slot.label,
-      time_of_day: time,
-      sort: DAY_SLOTS.findIndex((d: { label: string }) => d.label === slot.label),
-    });
-  }
-
-  await client.from('igud_audit').insert({
-    actor: `yemot:${phone}`,
-    action: 'yemot_lesson',
-    entity: 'igud_occurrences',
-    entity_id: String(lesson.id),
-    meta: { day: slot.label, time, lesson: lesson.title || lesson.topic },
+  const { error } = await client.rpc('igud_ivr_set_time', {
+    p_phone: phone,
+    p_lesson: lesson.id,
+    p_day_label: slot.label,
+    p_weekday: slot.weekday,
+    p_time: time,
+    p_sort: DAY_SLOTS.findIndex((d: { label: string }) => d.label === slot.label),
   });
+
+  if (error) {
+    return respond(
+      say('העדכון לא נשמר. נא לנסות שוב, או לפנות למשרדי האיגוד'),
+      goHome(),
+    );
+  }
 
   return respond(
     say(`השעה עודכנה. ${slot.label} בשעה ${time}`),

@@ -1,4 +1,4 @@
-import { serviceClient } from '@/lib/supabase';
+import { publicClient } from '@/lib/supabase';
 import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
 
@@ -13,7 +13,7 @@ const digits = (v: string) => String(v || '').replace(/\D/g, '');
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
-  const client = await serviceClient();
+  const client = publicClient();
 
   if (!params.kind) {
     return respond(
@@ -42,23 +42,23 @@ async function handle(request: Request) {
   const topic = topicChoice.value;
   const requesterType = ({ '1': 'בית כנסת', '2': 'מרכז תורני', '3': 'לימוד בסגנון של חברותא' } as Record<string, string>)[params.kind] || null;
 
-  await client.from('igud_requests').insert({
-    kind: 'open_lesson',
-    contact_name: `פנייה טלפונית ${phone}`,
-    phone,
-    city,
-    payload: { requesterType, topics: topic ? [topic] : [], viaVoice: true },
-    status: 'new',
-    source: 'yemot',
-    source_ref: params.ApiCallId || null,
+  const { error } = await client.rpc('igud_submit_request', {
+    p_kind: 'open_lesson',
+    payload: {
+      contact_name: `פנייה טלפונית ${phone}`,
+      phone,
+      city,
+      source: 'yemot',
+      source_ref: params.ApiCallId || null,
+      details: { requesterType, topics: topic ? [topic] : [], viaVoice: true },
+    },
   });
-
-  await client.from('igud_audit').insert({
-    actor: `yemot:${phone}`,
-    action: 'yemot_request',
-    entity: 'igud_requests',
-    meta: { kind: 'open_lesson', city, topic, requesterType },
-  });
+  if (error) {
+    return respond(
+      say('אירעה תקלה בשמירת הפרטים. נא לנסות שוב מאוחר יותר'),
+      hangup(),
+    );
+  }
 
   return respond(
     say('הבקשה נקלטה. תודה רבה'),

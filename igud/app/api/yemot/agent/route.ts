@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { serviceClient } from '@/lib/supabase';
+import { publicClient, serviceClient } from '@/lib/supabase';
 import { goHome, read, respond, say, yemotParams } from '@/lib/yemot';
 import { describeLesson, keywordSearch, upcomingFor } from '@/lib/ivr';
 
@@ -21,11 +21,29 @@ interface Intent {
   keywords?: string;
 }
 
+/**
+ * מפתח Claude, לפי סדר עדיפות:
+ *   1. משתנה סביבה — הדרך הפשוטה, ואינה דורשת חשבון שירות.
+ *   2. מסך ההגדרות — דורש חשבון שירות מוגדר.
+ * אם אין אף אחד מהם, מחזירים ריק והשלוחה עובדת בחיפוש מילות מפתח.
+ */
+async function aiConfig(): Promise<{ apiKey?: string; model?: string }> {
+  const envKey = process.env.ANTHROPIC_API_KEY;
+  if (envKey) return { apiKey: envKey, model: process.env.ANTHROPIC_MODEL };
+
+  try {
+    const client = await serviceClient();
+    const { data } = await client.from('igud_settings').select('value').eq('key', 'ai').maybeSingle();
+    return (data?.value || {}) as { apiKey?: string; model?: string };
+  } catch {
+    // אין חשבון שירות מוגדר: ממשיכים בלי הסוכן החכם
+    return {};
+  }
+}
+
 async function readIntent(text: string): Promise<Intent> {
-  const client = await serviceClient();
-  const { data } = await client.from('igud_settings').select('value').eq('key', 'ai').maybeSingle();
-  const config = (data?.value || {}) as { apiKey?: string; model?: string };
-  const apiKey = config.apiKey || process.env.ANTHROPIC_API_KEY;
+  const config = await aiConfig();
+  const apiKey = config.apiKey;
 
   if (!apiKey) return { keywords: text };
 
@@ -78,7 +96,7 @@ async function handle(request: Request) {
     );
   }
 
-  const client = await serviceClient();
+  const client = publicClient();
   const intent = await readIntent(text);
 
   let rows = await upcomingFor(
@@ -91,13 +109,6 @@ async function handle(request: Request) {
     const matches = await keywordSearch(client, intent.keywords || text, 5);
     rows = matches as unknown as typeof rows;
   }
-
-  await client.from('igud_audit').insert({
-    actor: `yemot:${params.ApiPhone || 'unknown'}`,
-    action: 'voice_agent_search',
-    entity: 'igud_lessons',
-    meta: { text, intent, results: rows.length },
-  });
 
   if (!rows.length) {
     return respond(
