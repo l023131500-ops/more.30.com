@@ -80,3 +80,25 @@ export function mediaUrl(path: string | null): string | null {
   if (path.startsWith('http')) return path;
   return `${url}/storage/v1/object/public/igud-media/${path.replace(/^\/+/, '')}`;
 }
+
+/**
+ * לקוח הפועל בשם המשתמש ששלח את הבקשה, אחרי אימות שהוא אכן מנהל.
+ *
+ * חשוב: אסור לבדוק הרשאת מנהל דרך לקוח השירות, כי חשבון השירות עצמו
+ * מוגדר כמנהל והבדיקה תמיד תעבור. הבדיקה חייבת לרוץ עם האסימון של
+ * הקורא, וזה מה שקורה כאן.
+ */
+export async function requireAdmin(request: Request): Promise<SupabaseClient> {
+  const header = request.headers.get('authorization') || '';
+  const token = header.replace(/^Bearer\s+/i, '').trim();
+  if (!token) throw new Error('נדרשת התחברות כמנהל');
+
+  const client = createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
+
+  const { data, error } = await client.rpc('igud_is_admin');
+  if (error || data !== true) throw new Error('הפעולה מותרת למנהלים בלבד');
+  return client;
+}

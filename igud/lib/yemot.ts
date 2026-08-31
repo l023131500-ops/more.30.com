@@ -1,4 +1,4 @@
-import { serviceClient } from './supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 /**
  * שכבת החיבור למערכת הקולית של ימות המשיח.
@@ -111,9 +111,8 @@ export interface YemotConfig {
   rootExt: string;
 }
 
-/** קריאת הגדרות החיבור מהמסד. */
-export async function yemotConfig(): Promise<YemotConfig | null> {
-  const client = await serviceClient();
+/** קריאת הגדרות החיבור מהמסד, בהרשאות של הלקוח שנמסר. */
+export async function yemotConfig(client: SupabaseClient): Promise<YemotConfig | null> {
   const { data } = await client.from('igud_settings').select('value').eq('key', 'yemot').maybeSingle();
   const value = (data?.value || {}) as Record<string, string>;
   if (!value.system) return null;

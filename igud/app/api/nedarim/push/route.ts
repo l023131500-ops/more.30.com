@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serviceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/supabase';
 import { addressLine, lessonTitle } from '@/lib/format';
 import { SITE } from '@/lib/site';
 
@@ -24,11 +24,7 @@ interface NedarimSettings {
 
 export async function POST(request: Request) {
   try {
-    const client = await serviceClient();
-    const { data: admin } = await client.rpc('igud_is_admin');
-    if (!admin) {
-      return NextResponse.json({ error: 'הפעולה מותרת למנהלים בלבד' }, { status: 403 });
-    }
+    const client = await requireAdmin(request);
 
     const { data: settingRow } = await client
       .from('igud_settings').select('value').eq('key', 'nedarim').maybeSingle();
@@ -105,9 +101,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, sent: payload.length, response: text.slice(0, 500) });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'השליחה נכשלה' },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'השליחה נכשלה';
+    const denied = /מנהלים בלבד|נדרשת התחברות/.test(message);
+    return NextResponse.json({ error: message }, { status: denied ? 403 : 500 });
   }
 }

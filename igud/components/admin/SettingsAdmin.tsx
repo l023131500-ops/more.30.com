@@ -127,7 +127,14 @@ export default function SettingsAdmin() {
     setError('');
     setMessage('');
     try {
-      const res = await fetch('/api/yemot/build', { method: 'POST' });
+      const { data: sessionData } = await browserClient().auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) throw new Error('פג תוקף ההתחברות. נא להיכנס מחדש.');
+
+      const res = await fetch('/api/yemot/build', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'בניית השלוחות נכשלה');
       setMessage(

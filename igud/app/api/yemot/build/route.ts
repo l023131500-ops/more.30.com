@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serviceClient } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/supabase';
 import {
   EXTENSIONS, apiExtensionIni, getSession, rootMenuIni, uploadTextFile, yemotConfig,
 } from '@/lib/yemot';
@@ -16,13 +16,8 @@ export const maxDuration = 60;
  */
 export async function POST(request: Request) {
   try {
-    const client = await serviceClient();
-    const { data: admin } = await client.rpc('igud_is_admin');
-    if (!admin) {
-      return NextResponse.json({ error: 'הפעולה מותרת למנהלים בלבד' }, { status: 403 });
-    }
-
-    const config = await yemotConfig();
+    const client = await requireAdmin(request);
+    const config = await yemotConfig(client);
     if (!config) {
       return NextResponse.json(
         { error: 'לא הוגדר חיבור למערכת הקולית. יש למלא מספר מערכת ומפתח API במסך ההגדרות.' },
@@ -61,9 +56,8 @@ export async function POST(request: Request) {
       extensions: EXTENSIONS.map((e) => ({ ext: `${root}/${e.ext}`, title: e.title, url: `${origin}${e.apiPath}` })),
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'בניית השלוחות נכשלה' },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : 'בניית השלוחות נכשלה';
+    const denied = /מנהלים בלבד|נדרשת התחברות/.test(message);
+    return NextResponse.json({ error: message }, { status: denied ? 403 : 500 });
   }
 }
