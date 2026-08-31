@@ -4,6 +4,14 @@ import { DAY_TO_WEEKDAY } from './format';
 
 export const PAGE_SIZE = 12;
 
+/**
+ * לקורא אנונימי יש הרשאת קריאה על עמודות נבחרות בלבד, ולכן אסור לבקש
+ * ממנו `select('*')`. אלה העמודות שנועדו לפרסום.
+ */
+export const TEACHER_PUBLIC_COLUMNS = 'id, slug, full_name, honorific, suffix, city, neighborhood, photo_url, logo_url, bio, background, occupation, organization, languages, topics, extra_skills, speech_style, status';
+
+export const VENUE_PUBLIC_COLUMNS = 'id, slug, name, kind, nusach, city, neighborhood, street, house_no, location_exact, gabbai_name, phone, logo_url, photo_url, about, geo_lat, geo_lng, status';
+
 /** בונה שאילתת שיעורים מסוננת על תצוגת הכרטיסים. */
 export function lessonQuery(client: SupabaseClient, filters: LessonFilters = {}) {
   let q = client.from('igud_lesson_cards').select('*', { count: 'exact' });
@@ -73,23 +81,23 @@ export async function fetchUpcoming(client: SupabaseClient, limit = 18) {
 export async function fetchVenues(client: SupabaseClient, limit = 24): Promise<Venue[]> {
   const { data, error } = await client
     .from('igud_venues')
-    .select('*')
+    .select(VENUE_PUBLIC_COLUMNS)
     .eq('status', 'published')
     .order('name')
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data || []) as Venue[];
+  return (data || []) as unknown as Venue[];
 }
 
 export async function fetchTeachers(client: SupabaseClient, limit = 60): Promise<Teacher[]> {
   const { data, error } = await client
     .from('igud_teachers')
-    .select('*')
+    .select(TEACHER_PUBLIC_COLUMNS)
     .eq('status', 'published')
     .order('full_name')
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data || []) as Teacher[];
+  return (data || []) as unknown as Teacher[];
 }
 
 export async function fetchLesson(client: SupabaseClient, id: string): Promise<LessonCard | null> {

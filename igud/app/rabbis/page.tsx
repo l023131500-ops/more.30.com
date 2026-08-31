@@ -6,6 +6,7 @@ import type { Teacher } from '@/lib/types';
 import { rabbiName } from '@/lib/format';
 import { FALLBACK_LOGO } from '@/lib/site';
 import { IconPin, IconUser } from '@/components/Icons';
+import { TEACHER_PUBLIC_COLUMNS } from '@/lib/queries';
 
 export const revalidate = 300;
 
@@ -21,7 +22,7 @@ export default async function RabbisPage() {
 
   const client = publicClient();
   const [{ data: teachers }, { data: lessons }] = await Promise.all([
-    client.from('igud_teachers').select('*').eq('status', 'published').order('full_name').limit(500)
+    client.from('igud_teachers').select(TEACHER_PUBLIC_COLUMNS).eq('status', 'published').order('full_name').limit(500)
       .then((r) => r, () => ({ data: [] as Teacher[] })),
     client.from('igud_lesson_cards').select('teacher_id').limit(4000)
       .then((r) => r, () => ({ data: [] as { teacher_id: string | null }[] })),
@@ -33,7 +34,7 @@ export default async function RabbisPage() {
     if (key) counts.set(key, (counts.get(key) || 0) + 1);
   }
 
-  const list = ((teachers || []) as Teacher[])
+  const list = ((teachers || []) as unknown as Teacher[])
     .map((teacher) => ({ teacher, count: counts.get(teacher.id) || 0 }))
     .sort((a, b) => b.count - a.count || a.teacher.full_name.localeCompare(b.teacher.full_name, 'he'));
 

@@ -3,7 +3,9 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { mediaUrl, publicClient, supabaseConfigured } from '@/lib/supabase';
-import { fetchActiveCities, fetchLessons, fetchTaxonomy } from '@/lib/queries';
+import {
+  fetchActiveCities, fetchLessons, fetchTaxonomy, TEACHER_PUBLIC_COLUMNS,
+} from '@/lib/queries';
 import type { Teacher } from '@/lib/types';
 import { rabbiName } from '@/lib/format';
 import { FALLBACK_LOGO } from '@/lib/site';
@@ -15,7 +17,7 @@ export const revalidate = 120;
 async function load(id: string) {
   if (!supabaseConfigured) return null;
   const client = publicClient();
-  const { data } = await client.from('igud_teachers').select('*').eq('id', id).maybeSingle();
+  const { data } = await client.from('igud_teachers').select(TEACHER_PUBLIC_COLUMNS).eq('id', id).maybeSingle();
   if (!data) return null;
 
   const [board, taxonomy, cities] = await Promise.all([
@@ -23,7 +25,7 @@ async function load(id: string) {
     fetchTaxonomy(client),
     fetchActiveCities(client),
   ]);
-  return { teacher: data as Teacher, board, taxonomy, cities };
+  return { teacher: data as unknown as Teacher, board, taxonomy, cities };
 }
 
 export async function generateMetadata(

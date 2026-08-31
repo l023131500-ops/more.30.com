@@ -5,6 +5,7 @@ import { mediaUrl, publicClient, supabaseConfigured } from '@/lib/supabase';
 import type { Venue } from '@/lib/types';
 import { FALLBACK_LOGO } from '@/lib/site';
 import { IconBuilding, IconPin } from '@/components/Icons';
+import { VENUE_PUBLIC_COLUMNS } from '@/lib/queries';
 
 export const revalidate = 300;
 
@@ -20,7 +21,7 @@ export default async function CentersPage() {
 
   const client = publicClient();
   const [{ data: venues }, { data: lessons }] = await Promise.all([
-    client.from('igud_venues').select('*').eq('status', 'published').order('name').limit(400)
+    client.from('igud_venues').select(VENUE_PUBLIC_COLUMNS).eq('status', 'published').order('name').limit(400)
       .then((r) => r, () => ({ data: [] as Venue[] })),
     client.from('igud_lesson_cards').select('venue_id').limit(4000)
       .then((r) => r, () => ({ data: [] as { venue_id: string | null }[] })),
@@ -32,7 +33,7 @@ export default async function CentersPage() {
     if (key) counts.set(key, (counts.get(key) || 0) + 1);
   }
 
-  const list = ((venues || []) as Venue[])
+  const list = ((venues || []) as unknown as Venue[])
     .map((venue) => ({ venue, count: counts.get(venue.id) || 0 }))
     .sort((a, b) => b.count - a.count || a.venue.name.localeCompare(b.venue.name, 'he'));
 

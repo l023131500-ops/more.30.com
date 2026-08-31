@@ -3,7 +3,9 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { mediaUrl, publicClient, supabaseConfigured } from '@/lib/supabase';
-import { fetchLesson } from '@/lib/queries';
+import {
+  fetchLesson, TEACHER_PUBLIC_COLUMNS, VENUE_PUBLIC_COLUMNS,
+} from '@/lib/queries';
 import type { LessonCard, Teacher, Venue } from '@/lib/types';
 import {
   addressLine, BROADCAST_LABEL, dayLabel, hebrewLabel, lessonTitle, placeName,
@@ -27,17 +29,17 @@ async function load(id: string) {
 
   const [teacher, venue] = await Promise.all([
     lesson.teacher_id
-      ? client.from('igud_teachers').select('*').eq('id', lesson.teacher_id).maybeSingle()
+      ? client.from('igud_teachers').select(TEACHER_PUBLIC_COLUMNS).eq('id', lesson.teacher_id).maybeSingle()
       : Promise.resolve({ data: null }),
     lesson.venue_id
-      ? client.from('igud_venues').select('*').eq('id', lesson.venue_id).maybeSingle()
+      ? client.from('igud_venues').select(VENUE_PUBLIC_COLUMNS).eq('id', lesson.venue_id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
   return {
     lesson,
-    teacher: (teacher.data as Teacher) || null,
-    venue: (venue.data as Venue) || null,
+    teacher: (teacher.data as unknown as Teacher) || null,
+    venue: (venue.data as unknown as Venue) || null,
   };
 }
 
