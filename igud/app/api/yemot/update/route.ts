@@ -1,9 +1,11 @@
 import { publicClient } from '@/lib/supabase';
 import { goHome, hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { describeLesson, numberedMenu } from '@/lib/ivr';
+import { freeMessage } from '@/lib/ivr-flows';
 import { DAY_SLOTS } from '@/lib/nedarim.js';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
@@ -41,13 +43,31 @@ async function handle(request: Request) {
     );
   }
 
-  /* ---------- בחירת השיעור ---------- */
-  if (!params.pick) {
-    const menu = numberedMenu(mine.map((row) => describeLesson(row)));
+  /* ---------- שני מסלולי העדכון ---------- */
+  if (!params.mode) {
     return respond(
       say(`נמצאו ${mine.length} שיעורים המשויכים אליכם`),
-      read(menu.text, 'pick', { min: 1, max: 1 }),
+      read(
+        'לעדכון שיעור במאגר הקישו 1. לעדכון בשפה שלכם הקישו 2',
+        'mode',
+        { min: 1, max: 1 },
+      ),
     );
+  }
+
+  const free = await freeMessage(client, params, {
+    kind: 'update',
+    requestKind: 'open_lesson',
+    phone,
+    invite: 'אמרו איזה שיעור לעדכן ומה השתנה, ונציג יעדכן עבורכם',
+  });
+  if (free) return free;
+
+  /* ---------- בחירת השיעור ---------- */
+  if (!params.pick) {
+    // המספר כבר נאמר בשלב בחירת המסלול, ואין טעם לחזור עליו
+    const menu = numberedMenu(mine.map((row) => describeLesson(row)));
+    return respond(read(menu.text, 'pick', { min: 1, max: 1 }));
   }
 
   const lesson = mine[Number(params.pick) - 1];

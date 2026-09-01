@@ -1,23 +1,41 @@
 import { publicClient } from '@/lib/supabase';
 import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
+import { askMode, freeMessage } from '@/lib/ivr-flows';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
 /**
  * שלוחה 4 — פתיחת שיעור תורה חדש.
- * מקום שמחפש מגיד שיעור משאיר את הפרטים החיוניים, והמשך בשיחת חזרה.
+ *
+ * מקום שמחפש מגיד שיעור. כמו בשלוחה 3, שני מסלולים: טופס מונחה או
+ * הודעה חופשית. גבאי שמתקשר בין מנחה למעריב לא יעבור שאלון.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (!params.mode) {
+    return askMode(
+      'פתיחת שיעור תורה חדש',
+      'נאסוף כמה פרטים, וצוות האיגוד יחפש עבורכם מגיד שיעור',
+    );
+  }
+
+  const free = await freeMessage(client, params, {
+    kind: 'host',
+    requestKind: 'open_lesson',
+    phone,
+    invite: 'ספרו איזה שיעור אתם מחפשים, באיזה מקום ובאילו זמנים',
+  });
+  if (free) return free;
+
   if (!params.kind) {
     return respond(
-      say('פתיחת שיעור תורה חדש'),
       read(
         'עבור בית כנסת הקישו 1. עבור מרכז תורני או ארגון הקישו 2. עבור קבוצת לומדים או חוג בית הקישו 3',
         'kind',

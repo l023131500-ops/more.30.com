@@ -1,26 +1,44 @@
 import { publicClient } from '@/lib/supabase';
 import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
+import { askMode, freeMessage } from '@/lib/ivr-flows';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
 /**
  * שלוחה 3 — הצטרפות כמגיד שיעור.
- * אוספת את הפרטים החיוניים בהקשות, ומשאירה את השאלון המלא לשיחת חזרה.
+ *
+ * שני מסלולים בפתיחה: טופס מונחה בהקשות, או הודעה חופשית בקול. שניהם
+ * מגיעים לאותה תיבה בניהול. מי שמתקשר תוך כדי הליכה לא יעבור שאלון,
+ * ולא נרצה לאבד אותו בגלל זה.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (!params.mode) {
+    return askMode(
+      'הצטרפות כמגיד שיעור',
+      'נאסוף כמה פרטים, ונציג מהאיגוד יחזור אליכם להשלמת השאלון',
+    );
+  }
+
+  const free = await freeMessage(client, params, {
+    kind: 'join',
+    requestKind: 'maggid',
+    phone,
+    invite: 'ספרו בקצרה על עצמכם, באיזה נושא תרצו למסור שיעור ובאיזה אזור',
+  });
+  if (free) return free;
+
   const cities = await topCities(client, 40);
   const cityChoice = pagedChoice(params, 'city', cities);
   if ('askText' in cityChoice) {
     return respond(
-      say('הצטרפות כמגיד שיעור'),
-      say('נאסוף כמה פרטים, ונציג מהאיגוד יחזור אליכם להשלמת השאלון'),
       read(`באיזו עיר אתם גרים. ${cityChoice.askText}`, cityChoice.varName, { min: 1, max: 1 }),
     );
   }
