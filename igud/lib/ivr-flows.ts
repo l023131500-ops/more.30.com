@@ -33,7 +33,7 @@ export async function freeMessage(
   client: SupabaseClient,
   params: Record<string, string>,
   opts: {
-    kind: 'join' | 'host' | 'message' | 'human' | 'update';
+    kind: 'join' | 'host' | 'message' | 'human' | 'update' | 'donation';
     requestKind: string;
     phone: string;
     invite: string;

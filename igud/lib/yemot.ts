@@ -188,19 +188,26 @@ export interface ExtensionPlan {
   apiPath: string;
 }
 
-/** ארבע השלוחות של האיגוד, לפי הסדר. */
+/**
+ * שש השלוחות של האיגוד, לפי הסדר.
+ *
+ * החיפוש בדיבור חופשי אינו שלוחה בפני עצמה: הוא דרך הכניסה של שלוחה 1,
+ * כי אדם שמחפש שיעור יודע לומר מה הוא רוצה הרבה לפני שהוא יודע באיזה
+ * ענף של תפריט זה יושב. כך 5 ו-6 מתפנות למה שאין לו מקום אחר.
+ */
 export const EXTENSIONS: ExtensionPlan[] = [
   { ext: '1', title: 'חיפוש שיעור', apiPath: '/api/yemot/search' },
   { ext: '2', title: 'עדכון שיעור קיים', apiPath: '/api/yemot/update' },
   { ext: '3', title: 'הצטרפות כמגיד שיעור', apiPath: '/api/yemot/maggid' },
   { ext: '4', title: 'פתיחת שיעור תורה חדש', apiPath: '/api/yemot/host' },
-  { ext: '5', title: 'חיפוש בדיבור חופשי', apiPath: '/api/yemot/agent' },
+  { ext: '5', title: 'שותפות בפעילות', apiPath: '/api/yemot/partner' },
+  { ext: '6', title: 'מענה אנושי והשארת הודעה', apiPath: '/api/yemot/contact' },
 ];
 
 /** תוכן ext.ini של תפריט הבסיס. */
 export function rootMenuIni(): string {
   const options = EXTENSIONS
-    .map((e) => `לשלוחת ${e.title} הקישו ${e.ext}`)
+    .map((e) => `ל${e.title} הקישו ${e.ext}`)
     .join('. ');
   return [
     'type=menu',
