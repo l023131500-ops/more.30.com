@@ -103,6 +103,62 @@ export async function upcomingFor(
   return data || [];
 }
 
+/**
+ * כמה שיעורים עונים לסינון, בלי להביא אותם.
+ *
+ * המערכת אומרת "נמצאו ארבעים ושניים שיעורים" לפני שהיא מקריאה משהו,
+ * ולכן דרושה ספירה נפרדת מהשליפה.
+ */
+export async function countFor(
+  client: SupabaseClient,
+  filter: { city?: string; topic?: string; teacher?: string } = {},
+): Promise<number> {
+  let query = client
+    .from('igud_upcoming')
+    .select('lesson_id', { count: 'exact', head: true })
+    .not('next_at', 'is', null);
+
+  if (filter.city) query = query.eq('city', filter.city);
+  if (filter.topic) query = query.contains('topics', [filter.topic]);
+  if (filter.teacher) query = query.ilike('teacher_name', `%${filter.teacher}%`);
+
+  const { count } = await query;
+  return count || 0;
+}
+
+/**
+ * הערים שבהן יש שיעורים מתוך תוצאות החיפוש הנוכחיות.
+ *
+ * זה החיתוך שמוצע למתקשר כשהרשימה ארוכה מדי. מוצעות רק ערים שבאמת
+ * מופיעות בתוצאות, כדי שבחירה לעולם לא תוביל לרשימה ריקה.
+ */
+export async function citiesWithin(
+  client: SupabaseClient,
+  filter: { topic?: string; teacher?: string } = {},
+  limit = 40,
+): Promise<string[]> {
+  let query = client
+    .from('igud_upcoming')
+    .select('city')
+    .not('next_at', 'is', null)
+    .not('city', 'is', null)
+    .limit(600);
+
+  if (filter.topic) query = query.contains('topics', [filter.topic]);
+  if (filter.teacher) query = query.ilike('teacher_name', `%${filter.teacher}%`);
+
+  const { data } = await query;
+  const tally = new Map<string, number>();
+  for (const row of data || []) {
+    const city = (row as { city: string | null }).city;
+    if (city) tally.set(city, (tally.get(city) || 0) + 1);
+  }
+  return [...tally.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([city]) => city);
+}
+
 /** חיפוש חופשי לפי מילות מפתח, לשימוש הסוכן הקולי. */
 export async function keywordSearch(client: SupabaseClient, text: string, limit = 5) {
   const words = String(text || '')
