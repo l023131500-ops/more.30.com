@@ -16,6 +16,7 @@ import ImportExport from '@/components/admin/ImportExport';
 import TaxonomyAdmin from '@/components/admin/TaxonomyAdmin';
 import SettingsAdmin from '@/components/admin/SettingsAdmin';
 import SubscribersAdmin from '@/components/admin/SubscribersAdmin';
+import DonationsAdmin from '@/components/admin/DonationsAdmin';
 import { IconArrowLeft } from '@/components/Icons';
 
 const SECTIONS = [
@@ -27,6 +28,7 @@ const SECTIONS = [
   { id: 'requests', label: 'בקשות לשיעור' },
   { id: 'maggidim', label: 'רישום מגידים' },
   { id: 'subscribers', label: 'נרשמים' },
+  { id: 'donations', label: 'תרומות' },
   { id: 'import', label: 'ייבוא וייצוא' },
   { id: 'taxonomy', label: 'רשימות בחירה' },
   { id: 'settings', label: 'חיבורים והגדרות' },
@@ -126,6 +128,7 @@ export default function AdminPage() {
           {section === 'requests' && <RequestsAdmin kind="open_lesson" />}
           {section === 'maggidim' && <RequestsAdmin kind="maggid" />}
           {section === 'subscribers' && <SubscribersAdmin />}
+          {section === 'donations' && <DonationsAdmin />}
           {section === 'import' && <ImportExport />}
           {section === 'taxonomy' && <TaxonomyAdmin />}
           {section === 'settings' && <SettingsAdmin />}
