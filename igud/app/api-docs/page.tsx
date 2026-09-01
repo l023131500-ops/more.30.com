@@ -231,11 +231,12 @@ x-igud-secret: <הסוד ממסך הניהול>
             </thead>
             <tbody className="divide-y divide-parch-200">
               {[
-                ['1', 'חיפוש שיעור לפי עיר, נושא או השיעורים הקרובים', '/api/yemot/search'],
+                ['1', 'חיפוש שיעור בדיבור חופשי, עם צמצום לפי עיר', '/api/yemot/search'],
                 ['2', 'עדכון שיעור קיים, לפי מספר הטלפון של המתקשר', '/api/yemot/update'],
                 ['3', 'הצטרפות כמגיד שיעור', '/api/yemot/maggid'],
                 ['4', 'פתיחת שיעור תורה חדש', '/api/yemot/host'],
-                ['5', 'חיפוש בדיבור חופשי', '/api/yemot/agent'],
+                ['5', 'שותפות בפעילות', '/api/yemot/partner'],
+                ['6', 'מענה אנושי והשארת הודעה', '/api/yemot/contact'],
               ].map(([ext, role, path]) => (
                 <tr key={ext}>
                   <td className="py-2.5 pl-4 font-display text-lg font-bold text-gold-700">{ext}</td>
@@ -252,9 +253,15 @@ x-igud-secret: <הסוד ממסך הניהול>
           <li>נכנסים למסך הניהול, לשונית חיבורים והגדרות.</li>
           <li>ממלאים את מספר המערכת בימות המשיח, ואת מפתח ה-API או סיסמת המערכת.</li>
           <li>קובעים את שלוחת הבסיס. כל הכתיבה מוגבלת לשלוחה הזו בלבד, ואין שום פעולת מחיקה.</li>
-          <li>לוחצים על <strong>בניית השלוחות</strong>. המערכת יוצרת תפריט ראשי וחמש שלוחות API.</li>
-          <li>מתקשרים לקו ובודקים. אפשר לערוך את נוסח ההודעות בקובץ ext.ini של כל שלוחה.</li>
+          <li>לוחצים על <strong>בניית השלוחות</strong>. המערכת יוצרת תפריט ראשי ושש שלוחות API.</li>
+          <li>מתקשרים לקו ובודקים.</li>
         </ol>
+
+        <p className="rounded-xl border border-parch-300 bg-parch-50 px-4 py-3 text-[0.85rem] leading-relaxed text-ink-700">
+          נוסח ההודעות אינו נערך בימות המשיח. קובץ ה-<code dir="ltr">ext.ini</code> הוא ארבע
+          שורות שמצביעות על כתובת כאן, וכל התסריט, התפריטים והחיפוש רצים בשרת. שינוי בטקסט
+          שנשמע למתקשר הוא שינוי בקוד, ולא בממשק של ימות.
+        </p>
 
         <p className="text-[0.88rem] leading-relaxed text-ink-700">
           לבנייה ידנית, זה תוכן ה-<code dir="ltr">ext.ini</code> של שלוחת API:
