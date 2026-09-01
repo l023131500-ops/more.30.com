@@ -10,6 +10,7 @@ import type { Taxonomy } from '@/lib/types';
 import { SITE } from '@/lib/site';
 import LoginCard from '@/components/auth/LoginCard';
 import LessonEditor, { type EditableLesson } from '@/components/LessonEditor';
+import DonationCard from '@/components/portal/DonationCard';
 import {
   IconArrowLeft, IconCheck, IconCopy, IconLink, IconPlus, IconClock, IconPin,
 } from '@/components/Icons';
@@ -186,6 +187,20 @@ export default function PortalPage() {
                 </div>
               );
             })}
+          </div>
+        </section>
+      )}
+
+      {/* ---------- תרומות ---------- */}
+      {links.some((l) => l.kind === 'venue') && (
+        <section className="mb-8">
+          <h2 className="mb-3 font-display text-lg font-bold text-royal-700">תרומות</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {links
+              .filter((l) => l.kind === 'venue')
+              .map((l) => (
+                <DonationCard key={l.id} venueId={l.id} venueName={l.name} />
+              ))}
           </div>
         </section>
       )}
