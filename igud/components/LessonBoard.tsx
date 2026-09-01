@@ -42,7 +42,7 @@ function Select({
         value={value || ''}
         onChange={(e) => onChange(e.target.value || undefined)}
         className={`field appearance-none !py-2 !pl-8 !pr-3 !text-[0.82rem] font-bold ${
-          value ? 'border-wine-500 !bg-wine-50 text-wine-700' : 'text-ink-700'
+          value ? 'border-royal-500 !bg-royal-50 text-royal-700' : 'text-ink-700'
         }`}
       >
         <option value="">{allLabel}</option>
@@ -155,7 +155,7 @@ export default function LessonBoard({
               <IconFilter className="h-4 w-4" />
               סינון
               {activeCount > 0 && (
-                <span className="rounded-full bg-gold-300 px-1.5 text-[0.7rem] text-wine-800">
+                <span className="rounded-full bg-gold-300 px-1.5 text-[0.7rem] text-royal-800">
                   {activeCount}
                 </span>
               )}
@@ -189,7 +189,7 @@ export default function LessonBoard({
                 value={filters.broadcast || ''}
                 onChange={(e) => set('broadcast')(e.target.value || undefined)}
                 className={`field appearance-none !py-2 !pl-8 !pr-3 !text-[0.82rem] font-bold ${
-                  filters.broadcast ? 'border-wine-500 !bg-wine-50 text-wine-700' : 'text-ink-700'
+                  filters.broadcast ? 'border-royal-500 !bg-royal-50 text-royal-700' : 'text-ink-700'
                 }`}
               >
                 <option value="">שידור והקלטה</option>
@@ -204,7 +204,7 @@ export default function LessonBoard({
       )}
 
       <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h2 className="font-display text-xl font-bold text-wine-700">
+        <h2 className="font-display text-xl font-bold text-royal-700">
           {heading || 'שיעורים במאגר'}
         </h2>
         <span className="text-sm text-ink-500 tabular-nums">
@@ -214,7 +214,7 @@ export default function LessonBoard({
 
       {rows.length === 0 && !busy && (
         <div className="rounded-2xl border border-dashed border-parch-300 bg-white/50 p-12 text-center">
-          <p className="font-display text-lg font-bold text-wine-700">לא נמצאו שיעורים</p>
+          <p className="font-display text-lg font-bold text-royal-700">לא נמצאו שיעורים</p>
           <p className="mt-1 text-sm text-ink-500">
             אפשר לנסות חיפוש אחר, או להסיר חלק מהסינונים.
           </p>

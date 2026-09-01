@@ -15,7 +15,7 @@ export function Panel({
     <section className="card-surface rounded-2xl p-5 sm:p-6">
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-xl font-bold text-wine-700">{title}</h2>
+          <h2 className="font-display text-xl font-bold text-royal-700">{title}</h2>
           {description && <p className="mt-0.5 text-[0.82rem] text-ink-500">{description}</p>}
         </div>
         {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
@@ -28,14 +28,14 @@ export function Panel({
 export function Badge({
   tone = 'neutral', children,
 }: {
-  tone?: 'neutral' | 'gold' | 'green' | 'wine';
+  tone?: 'neutral' | 'gold' | 'green' | 'royal';
   children: React.ReactNode;
 }) {
   const tones = {
     neutral: 'border-parch-300 bg-parch-200 text-ink-500',
     gold: 'border-gold-400 bg-gold-50 text-gold-700',
     green: 'border-green-600/40 bg-green-50 text-green-800',
-    wine: 'border-wine-400 bg-wine-50 text-wine-700',
+    royal: 'border-royal-400 bg-royal-50 text-royal-700',
   };
   return (
     <span className={`rounded-full border px-2 py-0.5 text-[0.66rem] font-bold ${tones[tone]}`}>
@@ -45,17 +45,17 @@ export function Badge({
 }
 
 export function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { tone: 'neutral' | 'gold' | 'green' | 'wine'; label: string }> = {
+  const map: Record<string, { tone: 'neutral' | 'gold' | 'green' | 'royal'; label: string }> = {
     pending: { tone: 'gold', label: 'ממתין לאישור' },
     published: { tone: 'green', label: 'מפורסם' },
-    rejected: { tone: 'wine', label: 'נדחה' },
+    rejected: { tone: 'royal', label: 'נדחה' },
     archived: { tone: 'neutral', label: 'בארכיון' },
     hidden: { tone: 'neutral', label: 'מוסתר' },
     new: { tone: 'gold', label: 'חדש' },
     in_progress: { tone: 'gold', label: 'בטיפול' },
     matched: { tone: 'green', label: 'שודך' },
     closed: { tone: 'neutral', label: 'סגור' },
-    spam: { tone: 'wine', label: 'זבל' },
+    spam: { tone: 'royal', label: 'זבל' },
   };
   const item = map[status] || { tone: 'neutral' as const, label: status };
   return <Badge tone={item.tone}>{item.label}</Badge>;
@@ -90,7 +90,7 @@ export function ConfirmButton({
           setBusy(true);
           try { await onConfirm(); } finally { setBusy(false); setArmed(false); }
         }}
-        className="btn !border !border-wine-600 !bg-wine-600 !py-1.5 !text-[0.76rem] !text-gold-100"
+        className="btn !border !border-royal-600 !bg-royal-600 !py-1.5 !text-[0.76rem] !text-gold-100"
       >
         <IconCheck className="h-3 w-3" />
         {confirmLabel}
@@ -121,7 +121,7 @@ export function Toast({ message, tone = 'ok' }: { message: string; tone?: 'ok' |
       className={`rounded-lg border px-4 py-3 text-sm font-bold ${
         tone === 'ok'
           ? 'border-green-600/40 bg-green-50 text-green-800'
-          : 'border-wine-300 bg-wine-50 text-wine-700'
+          : 'border-royal-300 bg-royal-50 text-royal-700'
       }`}
     >
       {message}
@@ -129,11 +129,11 @@ export function Toast({ message, tone = 'ok' }: { message: string; tone?: 'ok' |
   );
 }
 
-export function Stat({ label, value, tone = 'neutral' }: { label: string; value: number | string; tone?: 'neutral' | 'gold' | 'wine' }) {
-  const border = tone === 'gold' ? 'border-gold-400' : tone === 'wine' ? 'border-wine-400' : 'border-parch-300';
+export function Stat({ label, value, tone = 'neutral' }: { label: string; value: number | string; tone?: 'neutral' | 'gold' | 'royal' }) {
+  const border = tone === 'gold' ? 'border-gold-400' : tone === 'royal' ? 'border-royal-400' : 'border-parch-300';
   return (
     <div className={`rounded-xl border bg-white/70 px-4 py-3 ${border}`}>
-      <div className="font-display text-2xl font-bold tabular-nums text-wine-700">{value}</div>
+      <div className="font-display text-2xl font-bold tabular-nums text-royal-700">{value}</div>
       <div className="text-[0.72rem] text-ink-500">{label}</div>
     </div>
   );

@@ -34,7 +34,7 @@ export default async function SearchPage() {
           <IconSearch className="h-3.5 w-3.5" />
           חיפוש חכם
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           מציאת שיעור תורה
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">

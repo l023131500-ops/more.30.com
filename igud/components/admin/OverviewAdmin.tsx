@@ -104,7 +104,7 @@ export default function OverviewAdmin({ onJump }: { onJump: (section: string) =>
           <ul className="divide-y divide-parch-200">
             {audit.map((row) => (
               <li key={row.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 py-2.5">
-                <span className="text-[0.82rem] font-bold text-wine-700">
+                <span className="text-[0.82rem] font-bold text-royal-700">
                   {ACTION_LABELS[row.action] || row.action}
                 </span>
                 <span className="text-[0.78rem] text-ink-500">

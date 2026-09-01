@@ -43,11 +43,11 @@ export default function LoginCard({
             height={259}
             className="h-24 w-auto"
           />
-          <span className="font-display text-lg font-bold text-wine-700">{SITE.name}</span>
+          <span className="font-display text-lg font-bold text-royal-700">{SITE.name}</span>
         </Link>
 
         <form onSubmit={submit} className="card-surface rounded-2xl p-7">
-          <h1 className="font-display text-2xl font-bold text-wine-700">{title}</h1>
+          <h1 className="font-display text-2xl font-bold text-royal-700">{title}</h1>
           <p className="mt-1 text-[0.85rem] text-ink-500">{subtitle}</p>
 
           <div className="mt-6 space-y-4">
@@ -83,7 +83,7 @@ export default function LoginCard({
           </div>
 
           {error && (
-            <p className="mt-4 rounded-lg border border-wine-300 bg-wine-50 px-3 py-2 text-[0.82rem] font-bold text-wine-700">
+            <p className="mt-4 rounded-lg border border-royal-300 bg-royal-50 px-3 py-2 text-[0.82rem] font-bold text-royal-700">
               {error}
             </p>
           )}
@@ -98,7 +98,7 @@ export default function LoginCard({
 
         <Link
           href="/"
-          className="mt-6 flex items-center justify-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+          className="mt-6 flex items-center justify-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
         >
           <IconArrowLeft className="h-4 w-4" />
           חזרה לאתר

@@ -38,7 +38,7 @@ export default function AboutPage() {
           height={754}
           className="mx-auto h-40 w-auto drop-shadow-[0_14px_32px_rgba(74,24,24,0.25)]"
         />
-        <h1 className="mt-6 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-6 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           {SITE.name}
         </h1>
         <p className="mt-2 text-base text-gold-700">{SITE.tagline}</p>
@@ -65,21 +65,21 @@ export default function AboutPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="font-display text-2xl font-bold text-wine-700">שלושה ערוצים, מאגר אחד</h2>
+        <h2 className="font-display text-2xl font-bold text-royal-700">שלושה ערוצים, מאגר אחד</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           {CHANNELS.map((channel) => (
             <div key={channel.title} className="card-surface rounded-2xl p-5">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-wine-600 to-wine-800 text-gold-200">
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-royal-600 to-royal-800 text-gold-200">
                 {channel.icon}
               </span>
-              <h3 className="mt-4 font-display text-lg font-bold text-wine-700">{channel.title}</h3>
+              <h3 className="mt-4 font-display text-lg font-bold text-royal-700">{channel.title}</h3>
               <p className="mt-1.5 text-[0.85rem] leading-relaxed text-ink-700">{channel.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="mt-12 rounded-2xl border border-gold-400/60 bg-gradient-to-l from-wine-700 to-wine-800 p-8 text-gold-100">
+      <section className="mt-12 rounded-2xl border border-gold-400/60 bg-gradient-to-l from-royal-700 to-royal-800 p-8 text-gold-100">
         <h2 className="font-display text-2xl font-bold">יצירת קשר</h2>
         <div className="mt-4 space-y-2 text-[0.95rem]">
           <a href={`tel:${SITE.voiceLine}`} className="flex items-center gap-2 hover:text-white">

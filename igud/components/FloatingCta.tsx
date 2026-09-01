@@ -46,8 +46,8 @@ export default function FloatingCta() {
         onMouseLeave={() => setExpanded(false)}
         onBlur={() => setExpanded(false)}
         className="animate-soft-pulse group flex items-center gap-3 rounded-full border border-gold-500
-                   bg-gradient-to-br from-wine-600 to-wine-800 p-1 pl-1 text-gold-100
-                   transition-all duration-500 hover:from-wine-500 hover:to-wine-700"
+                   bg-gradient-to-br from-royal-600 to-royal-800 p-1 pl-1 text-gold-100
+                   transition-all duration-500 hover:from-royal-500 hover:to-royal-700"
         aria-label="מעוניינים להפיץ תורה? הוספת שיעור למאגר"
       >
         <span

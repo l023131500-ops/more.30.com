@@ -211,7 +211,7 @@ export default function LessonEditor({
       <div className="mx-auto max-w-3xl">
         <div className="sticky top-0 z-10 flex items-center justify-between gap-3 rounded-t-2xl
                         border-b border-parch-300 bg-parch-100 px-5 py-3">
-          <h2 className="font-display text-lg font-bold text-wine-700">עריכת שיעור</h2>
+          <h2 className="font-display text-lg font-bold text-royal-700">עריכת שיעור</h2>
           <div className="flex gap-2">
             <button type="button" onClick={onClose} className="btn btn-quiet !py-2 !text-[0.82rem]">
               <IconClose className="h-3.5 w-3.5" />
@@ -226,7 +226,7 @@ export default function LessonEditor({
 
         <div className="space-y-4 rounded-b-2xl bg-parch-100 p-4 sm:p-5">
           {error && (
-            <p className="rounded-lg border border-wine-300 bg-wine-50 px-4 py-3 text-sm font-bold text-wine-700">
+            <p className="rounded-lg border border-royal-300 bg-royal-50 px-4 py-3 text-sm font-bold text-royal-700">
               {error}
             </p>
           )}

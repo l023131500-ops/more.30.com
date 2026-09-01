@@ -24,10 +24,10 @@ function Endpoint({ method, path, children }: { method: string; path: string; ch
   return (
     <div className="mb-3">
       <p className="flex flex-wrap items-center gap-2">
-        <span className="rounded-md bg-wine-700 px-2 py-0.5 font-mono text-[0.72rem] font-bold text-gold-200">
+        <span className="rounded-md bg-royal-700 px-2 py-0.5 font-mono text-[0.72rem] font-bold text-gold-200">
           {method}
         </span>
-        <code dir="ltr" className="text-[0.85rem] font-bold text-wine-700">{path}</code>
+        <code dir="ltr" className="text-[0.85rem] font-bold text-royal-700">{path}</code>
       </p>
       {children && <div className="mt-1.5 text-[0.88rem] leading-relaxed text-ink-700">{children}</div>}
     </div>
@@ -39,7 +39,7 @@ function Section({ id, title, lead, children }: {
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <h2 className="font-display text-2xl font-bold text-wine-700">{title}</h2>
+      <h2 className="font-display text-2xl font-bold text-royal-700">{title}</h2>
       {lead && <p className="mt-1.5 text-[0.92rem] leading-relaxed text-ink-700">{lead}</p>}
       <div className="mt-4 space-y-4">{children}</div>
       <div className="rule-gold my-10 opacity-60" />
@@ -63,7 +63,7 @@ export default function ApiDocsPage() {
     <div className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה למאגר
@@ -74,7 +74,7 @@ export default function ApiDocsPage() {
           <IconGlobe className="h-3.5 w-3.5" />
           למפתחים ולמערכות מקושרות
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           תיעוד ממשק API
         </h1>
         <p className="mt-2 max-w-2xl text-[0.95rem] leading-relaxed text-ink-700">
@@ -88,7 +88,7 @@ export default function ApiDocsPage() {
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="rounded-full border border-parch-300 bg-white/70 px-3.5 py-1.5 text-[0.8rem] font-bold text-wine-700 transition hover:border-gold-400"
+            className="rounded-full border border-parch-300 bg-white/70 px-3.5 py-1.5 text-[0.8rem] font-bold text-royal-700 transition hover:border-gold-400"
           >
             {item.label}
           </a>
@@ -146,7 +146,7 @@ export default function ApiDocsPage() {
       >
         <Endpoint method="POST" path="/api/nedarim/callback">
           זו הכתובת שיש למסור לנדרים פלוס. הסוד נקבע במסך הניהול, בלשונית
-          {' '}<Link href="/admin" className="font-bold text-wine-600 underline underline-offset-2">חיבורים והגדרות</Link>,
+          {' '}<Link href="/admin" className="font-bold text-royal-600 underline underline-offset-2">חיבורים והגדרות</Link>,
           ונשלח בכותרת <code dir="ltr">x-igud-secret</code> או בשדה <code dir="ltr">secret</code>.
         </Endpoint>
 
@@ -240,14 +240,14 @@ x-igud-secret: <הסוד ממסך הניהול>
                 <tr key={ext}>
                   <td className="py-2.5 pl-4 font-display text-lg font-bold text-gold-700">{ext}</td>
                   <td className="py-2.5 pl-4 text-ink-700">{role}</td>
-                  <td className="py-2.5"><code dir="ltr" className="text-[0.8rem] text-wine-700">{path}</code></td>
+                  <td className="py-2.5"><code dir="ltr" className="text-[0.8rem] text-royal-700">{path}</code></td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <h3 className="mt-6 font-display text-lg font-bold text-wine-700">איך מחברים</h3>
+        <h3 className="mt-6 font-display text-lg font-bold text-royal-700">איך מחברים</h3>
         <ol className="mr-5 list-decimal space-y-2 text-[0.9rem] leading-relaxed text-ink-700">
           <li>נכנסים למסך הניהול, לשונית חיבורים והגדרות.</li>
           <li>ממלאים את מספר המערכת בימות המשיח, ואת מפתח ה-API או סיסמת המערכת.</li>
@@ -315,7 +315,7 @@ api_max_call_length=600`}</Code>
       <footer className="rounded-2xl border border-parch-300 bg-white/60 p-6">
         <p className="flex items-center gap-2 text-[0.9rem] text-ink-700">
           <IconLink className="h-4 w-4 text-gold-600" />
-          כתובת הבסיס של האתר: <code dir="ltr" className="font-bold text-wine-700">{base}</code>
+          כתובת הבסיס של האתר: <code dir="ltr" className="font-bold text-royal-700">{base}</code>
         </p>
         <p className="mt-2 flex items-center gap-2 text-[0.9rem] text-ink-700">
           <IconPhone className="h-4 w-4 text-gold-600" />

@@ -18,11 +18,11 @@ export function Field({
     <div>
       <div className="field-label">
         {label}
-        {required && <span className="mr-1 text-wine-500">*</span>}
+        {required && <span className="mr-1 text-royal-500">*</span>}
       </div>
       {children}
       {hint && !error && <p className="mt-1 text-[0.72rem] text-ink-500">{hint}</p>}
-      {error && <p className="mt-1 text-[0.72rem] font-bold text-wine-600">{error}</p>}
+      {error && <p className="mt-1 text-[0.72rem] font-bold text-royal-600">{error}</p>}
     </div>
   );
 }
@@ -52,7 +52,7 @@ export function TextInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className={`field ${error ? '!border-wine-500' : ''}`}
+        className={`field ${error ? '!border-royal-500' : ''}`}
       />
     </Field>
   );
@@ -101,7 +101,7 @@ export function SelectInput({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`field appearance-none !pl-9 ${error ? '!border-wine-500' : ''}`}
+          className={`field appearance-none !pl-9 ${error ? '!border-royal-500' : ''}`}
         >
           <option value="">{placeholder}</option>
           {options.map((o) => (
@@ -238,7 +238,7 @@ export function Toggle({
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`mt-0.5 h-6 w-11 shrink-0 rounded-full border transition-colors ${
-          checked ? 'border-wine-700 bg-wine-600' : 'border-parch-300 bg-parch-200'
+          checked ? 'border-royal-700 bg-royal-600' : 'border-parch-300 bg-parch-200'
         }`}
       >
         <span
@@ -266,7 +266,7 @@ export function Section({
 }) {
   return (
     <section className="card-surface rounded-2xl p-5 sm:p-7">
-      <h2 className="font-display text-xl font-bold text-wine-700">{title}</h2>
+      <h2 className="font-display text-xl font-bold text-royal-700">{title}</h2>
       {description && <p className="mt-1 text-[0.85rem] leading-relaxed text-ink-500">{description}</p>}
       <div className="mt-5 space-y-5">{children}</div>
     </section>

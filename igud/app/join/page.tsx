@@ -35,14 +35,14 @@ export default function JoinPage() {
     <div className="mx-auto max-w-[1000px] px-4 py-8 sm:px-6">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה למאגר
       </Link>
 
       <header className="mb-10 text-center">
-        <h1 className="font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           הצטרפות לאיגוד השיעורים
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
@@ -59,10 +59,10 @@ export default function JoinPage() {
             className="card-surface animate-rise group flex flex-col rounded-2xl p-7 sm:p-9"
             style={{ animationDelay: `${i * 90}ms` }}
           >
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-wine-600 to-wine-800 text-gold-200">
+            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-gradient-to-br from-royal-600 to-royal-800 text-gold-200">
               {card.icon}
             </span>
-            <h2 className="mt-5 font-display text-2xl font-bold text-wine-700">{card.title}</h2>
+            <h2 className="mt-5 font-display text-2xl font-bold text-royal-700">{card.title}</h2>
             <p className="mt-3 flex-1 text-[0.92rem] leading-relaxed text-ink-700">{card.body}</p>
             <span className="btn btn-gold mt-6 self-start">
               {card.cta}
@@ -74,7 +74,7 @@ export default function JoinPage() {
 
       <p className="mt-10 text-center text-sm text-ink-500">
         אפשר גם למלא את הטפסים במערכת הקולית{' '}
-        <a href={`tel:${SITE.voiceLine}`} className="font-bold text-wine-600">{SITE.voiceLine}</a>
+        <a href={`tel:${SITE.voiceLine}`} className="font-bold text-royal-600">{SITE.voiceLine}</a>
         {' '}או בעמדות נדרים פלוס.
       </p>
     </div>

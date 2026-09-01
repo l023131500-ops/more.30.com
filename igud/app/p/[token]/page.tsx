@@ -90,7 +90,7 @@ export default async function PersonalLinkPage(
           {link.kind === 'teacher' ? 'שיעורי הרב' : link.organization || 'מרכז תורה'}
         </p>
 
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">{name}</h1>
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">{name}</h1>
 
         {link.city && (
           <p className="mt-2 flex items-center justify-center gap-1 text-sm text-ink-500">
@@ -123,7 +123,7 @@ export default async function PersonalLinkPage(
 
       <footer className="mt-14 text-center">
         <div className="rule-gold mx-auto mb-6 max-w-xs" />
-        <Link href="/" className="inline-flex flex-col items-center gap-2 text-ink-500 transition hover:text-wine-600">
+        <Link href="/" className="inline-flex flex-col items-center gap-2 text-ink-500 transition hover:text-royal-600">
           <Image src="/brand/mark-96.webp" alt="" width={96} height={96} className="h-10 w-10 opacity-80" />
           <span className="text-[0.78rem] font-bold">
             מוצג באדיבות {SITE.name} · {SITE.tagline}

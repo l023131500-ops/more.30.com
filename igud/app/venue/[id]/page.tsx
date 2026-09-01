@@ -58,7 +58,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
       <Link
         href="/centers"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         לכל מרכזי התורה
@@ -82,7 +82,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
             <IconBuilding className="h-3.5 w-3.5" />
             {venue.kind}
           </p>
-          <h1 className="mt-1 font-display text-3xl font-bold text-wine-700">{venue.name}</h1>
+          <h1 className="mt-1 font-display text-3xl font-bold text-royal-700">{venue.name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-500">
             {address && (
               <span className="flex items-center gap-1">
@@ -93,7 +93,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
             {venue.nusach && <span>נוסח {venue.nusach}</span>}
             {venue.gabbai_name && <span>גבאי: {venue.gabbai_name}</span>}
             {phoneHref && (
-              <a href={phoneHref} className="flex items-center gap-1 font-bold text-wine-600">
+              <a href={phoneHref} className="flex items-center gap-1 font-bold text-royal-600">
                 <IconPhone className="h-3.5 w-3.5" />
                 {venue.phone}
               </a>
@@ -107,7 +107,7 @@ export default async function VenuePage({ params }: { params: Promise<{ id: stri
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${venue.name} ${address}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-block text-[0.82rem] font-bold text-wine-600 underline underline-offset-2"
+              className="mt-3 inline-block text-[0.82rem] font-bold text-royal-600 underline underline-offset-2"
             >
               פתיחה במפה
             </a>

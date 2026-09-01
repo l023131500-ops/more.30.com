@@ -30,13 +30,13 @@ export function BroadcastMarks({ value, size = 'sm' }: { value: string; size?: '
       )}
       {live && (
         <span
-          className={`inline-flex items-center gap-1 rounded-full border border-wine-500/50
-                      bg-wine-50 font-bold text-wine-600 ${pad}`}
+          className={`inline-flex items-center gap-1 rounded-full border border-royal-500/50
+                      bg-royal-50 font-bold text-royal-600 ${pad}`}
           title="השיעור משודר בשידור חי"
         >
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-wine-500 opacity-70" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-wine-600" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-royal-500 opacity-70" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-royal-600" />
           </span>
           <IconLive className={icon} />
           שידור חי
@@ -80,7 +80,7 @@ export default function LessonCardTile({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-lg font-bold leading-snug text-wine-700 line-clamp-2">
+          <h3 className="font-display text-lg font-bold leading-snug text-royal-700 line-clamp-2">
             {lessonTitle(lesson)}
           </h3>
           <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink-700">
@@ -93,8 +93,8 @@ export default function LessonCardTile({
           <span
             className={`shrink-0 rounded-lg px-2.5 py-1.5 text-center leading-tight ${
               when.soon
-                ? 'bg-gradient-to-br from-wine-600 to-wine-800 text-gold-200'
-                : 'border border-parch-300 bg-white/70 text-wine-700'
+                ? 'bg-gradient-to-br from-royal-600 to-royal-800 text-gold-200'
+                : 'border border-parch-300 bg-white/70 text-royal-700'
             }`}
           >
             <span className="block text-[0.65rem] opacity-85">{when.day}</span>

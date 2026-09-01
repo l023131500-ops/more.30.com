@@ -54,7 +54,7 @@ export default async function RabbiPage({ params }: { params: Promise<{ id: stri
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה למאגר
@@ -78,7 +78,7 @@ export default async function RabbiPage({ params }: { params: Promise<{ id: stri
             <IconUser className="h-3.5 w-3.5" />
             מגיד שיעור
           </p>
-          <h1 className="mt-1 font-display text-3xl font-bold text-wine-700">{name}</h1>
+          <h1 className="mt-1 font-display text-3xl font-bold text-royal-700">{name}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-500">
             {teacher.city && (
               <span className="flex items-center gap-1">

@@ -136,7 +136,7 @@ export default function LessonActions({ lesson }: { lesson: LessonCard }) {
           הוספה ליומן
         </a>
       </div>
-      {error && <p className="mt-2 text-xs text-wine-600">{error}</p>}
+      {error && <p className="mt-2 text-xs text-royal-600">{error}</p>}
     </div>
   );
 }

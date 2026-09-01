@@ -35,7 +35,7 @@ export default function SiteFooter() {
   return (
     <footer className="mt-20 no-print">
       <div className="rule-gold" />
-      <div className="bg-gradient-to-b from-wine-700 to-wine-800 text-gold-100">
+      <div className="bg-gradient-to-b from-royal-700 to-royal-800 text-gold-100">
         <div className="mx-auto grid max-w-[1400px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
           <div>
             <div className="flex items-center gap-3">

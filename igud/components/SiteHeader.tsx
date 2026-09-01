@@ -42,7 +42,7 @@ export default function SiteHeader() {
             className={`w-auto transition-all duration-300 ${lifted ? 'h-10' : 'h-12 sm:h-14'}`}
           />
           <span className="hidden sm:block leading-tight">
-            <span className="block font-display text-lg font-bold text-wine-700 sm:text-xl">
+            <span className="block font-display text-lg font-bold text-royal-700 sm:text-xl">
               {SITE.name}
             </span>
             <span className="block text-[0.7rem] tracking-wide text-ink-500">{SITE.tagline}</span>
@@ -57,7 +57,7 @@ export default function SiteHeader() {
                 key={item.href}
                 href={item.href}
                 className={`relative rounded-lg px-3 py-2 text-sm font-bold transition-colors ${
-                  active ? 'text-wine-700' : 'text-ink-700 hover:text-wine-600'
+                  active ? 'text-royal-700' : 'text-ink-700 hover:text-royal-600'
                 }`}
               >
                 {item.label}
@@ -73,7 +73,7 @@ export default function SiteHeader() {
           <a
             href={`tel:${SITE.voiceLine}`}
             className="hidden items-center gap-1.5 rounded-lg border border-parch-300 bg-white/70
-                       px-3 py-1.5 text-xs font-bold text-wine-700 transition hover:border-gold-400 md:flex"
+                       px-3 py-1.5 text-xs font-bold text-royal-700 transition hover:border-gold-400 md:flex"
             title="המערכת הקולית של האיגוד"
           >
             <IconPhone className="h-3.5 w-3.5" />
@@ -92,7 +92,7 @@ export default function SiteHeader() {
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? 'סגירת התפריט' : 'פתיחת התפריט'}
             aria-expanded={open}
-            className="rounded-lg border border-parch-300 bg-white/70 p-2 text-wine-700 lg:hidden"
+            className="rounded-lg border border-parch-300 bg-white/70 p-2 text-royal-700 lg:hidden"
           >
             {open ? <IconClose className="h-5 w-5" /> : <IconMenu className="h-5 w-5" />}
           </button>
@@ -108,14 +108,14 @@ export default function SiteHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-lg px-3 py-2.5 text-sm font-bold text-ink-700 hover:bg-gold-50 hover:text-wine-700"
+                className="rounded-lg px-3 py-2.5 text-sm font-bold text-ink-700 hover:bg-gold-50 hover:text-royal-700"
               >
                 {item.label}
               </Link>
             ))}
             <a
               href={`tel:${SITE.voiceLine}`}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold text-wine-700"
+              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-bold text-royal-700"
             >
               <IconPhone className="h-4 w-4" />
               מערכת קולית {SITE.voiceLine}

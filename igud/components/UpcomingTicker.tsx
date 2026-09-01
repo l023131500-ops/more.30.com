@@ -50,7 +50,7 @@ function Row({ row, order }: { row: UpcomingRow; order: number }) {
       style={{ animationDelay: `${Math.min(order, 14) * 70}ms` }}
     >
       <span className="flex w-[3.4rem] shrink-0 flex-col items-center justify-center rounded-lg
-                       bg-gradient-to-b from-wine-600 to-wine-800 py-1.5 text-gold-200">
+                       bg-gradient-to-b from-royal-600 to-royal-800 py-1.5 text-gold-200">
         <span className="text-[0.6rem] leading-none opacity-85">{when.day}</span>
         <span className="mt-0.5 font-display text-[0.95rem] font-bold leading-none tabular-nums">
           {when.time || timeLabel({
@@ -62,11 +62,11 @@ function Row({ row, order }: { row: UpcomingRow; order: number }) {
 
       <span className="min-w-0 flex-1">
         <span className="flex items-center gap-1.5">
-          <span className="truncate font-display text-[0.95rem] font-bold text-wine-700">
+          <span className="truncate font-display text-[0.95rem] font-bold text-royal-700">
             {rowTitle(row)}
           </span>
           {recorded && <IconMic className="h-3 w-3 shrink-0 text-gold-600" />}
-          {live && <IconLive className="h-3 w-3 shrink-0 text-wine-500" />}
+          {live && <IconLive className="h-3 w-3 shrink-0 text-royal-500" />}
         </span>
         <span className="mt-0.5 block truncate text-[0.8rem] font-bold text-ink-700">
           {row.teacher_name}
@@ -115,7 +115,7 @@ export default function UpcomingTicker({ rows }: { rows: UpcomingRow[] }) {
 
   return (
     <aside className="overflow-hidden rounded-2xl border border-parch-300 bg-gradient-to-b from-white/80 to-parch-100/60 shadow-[var(--shadow-card)]">
-      <header className="border-b border-parch-200 bg-gradient-to-l from-wine-700 to-wine-800 px-4 py-3">
+      <header className="border-b border-parch-200 bg-gradient-to-l from-royal-700 to-royal-800 px-4 py-3">
         <h2 className="flex items-center gap-2 font-display text-base font-bold text-gold-200">
           <IconClock className="h-4 w-4 text-gold-400" />
           השיעורים הקרובים

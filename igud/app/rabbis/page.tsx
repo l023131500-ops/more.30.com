@@ -45,7 +45,7 @@ export default async function RabbisPage() {
           <IconUser className="h-3.5 w-3.5" />
           מגידי שיעור
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           הרבנים שמוסרים שיעורים
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
@@ -76,7 +76,7 @@ export default async function RabbisPage() {
                 />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-display text-[1.02rem] font-bold text-wine-700">
+                <span className="block truncate font-display text-[1.02rem] font-bold text-royal-700">
                   {rabbiName(teacher.full_name, teacher.honorific || 'הרב')}
                 </span>
                 <span className="flex items-center gap-2 truncate text-[0.76rem] text-ink-500">

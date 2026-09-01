@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_STYLE: Record<string, string> = {
   pending: 'border-gold-400 bg-gold-50 text-gold-700',
   published: 'border-green-600/40 bg-green-50 text-green-800',
-  rejected: 'border-wine-400 bg-wine-50 text-wine-700',
+  rejected: 'border-royal-400 bg-royal-50 text-royal-700',
   archived: 'border-parch-300 bg-parch-200 text-ink-500',
 };
 
@@ -105,7 +105,7 @@ export default function PortalPage() {
         footer={
           <>
             אין לכם עדיין חשבון?{' '}
-            <a href={`tel:${SITE.voiceLine}`} className="font-bold text-wine-600">
+            <a href={`tel:${SITE.voiceLine}`} className="font-bold text-royal-600">
               מתקשרים ל-{SITE.voiceLine}
             </a>
           </>
@@ -122,7 +122,7 @@ export default function PortalPage() {
         <div className="flex items-center gap-3">
           <Image src={SITE.logoSmall} alt="" width={220} height={259} className="h-14 w-auto" />
           <div>
-            <h1 className="font-display text-2xl font-bold text-wine-700">האזור האישי</h1>
+            <h1 className="font-display text-2xl font-bold text-royal-700">האזור האישי</h1>
             <p className="text-[0.8rem] text-ink-500">
               {me?.accounts?.[0]?.display_name || session.user.email}
             </p>
@@ -143,7 +143,7 @@ export default function PortalPage() {
       </header>
 
       {error && (
-        <p className="mb-5 rounded-lg border border-wine-300 bg-wine-50 px-4 py-3 text-sm font-bold text-wine-700">
+        <p className="mb-5 rounded-lg border border-royal-300 bg-royal-50 px-4 py-3 text-sm font-bold text-royal-700">
           {error}
         </p>
       )}
@@ -151,7 +151,7 @@ export default function PortalPage() {
       {/* ---------- קישורים אישיים ---------- */}
       {links.length > 0 && (
         <section className="mb-8">
-          <h2 className="mb-3 font-display text-lg font-bold text-wine-700">הקישורים שלכם</h2>
+          <h2 className="mb-3 font-display text-lg font-bold text-royal-700">הקישורים שלכם</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {links.map((link) => {
               const url = `${typeof window !== 'undefined' ? window.location.origin : SITE.url}/p/${link.token}`;
@@ -161,7 +161,7 @@ export default function PortalPage() {
                     <IconLink className="h-3.5 w-3.5" />
                     {link.kind === 'teacher' ? 'דף מגיד השיעור' : 'דף המרכז'}
                   </p>
-                  <p className="mt-1 font-display text-base font-bold text-wine-700">{link.name}</p>
+                  <p className="mt-1 font-display text-base font-bold text-royal-700">{link.name}</p>
                   <p className="mt-2 truncate rounded-lg bg-parch-200 px-3 py-2 text-[0.75rem] text-ink-700" dir="ltr">
                     {url}
                   </p>
@@ -193,7 +193,7 @@ export default function PortalPage() {
       {/* ---------- השיעורים שלי ---------- */}
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <h2 className="font-display text-lg font-bold text-wine-700">השיעורים שלכם</h2>
+          <h2 className="font-display text-lg font-bold text-royal-700">השיעורים שלכם</h2>
           <Link href="/add" className="btn btn-primary !py-2 !text-[0.82rem]">
             <IconPlus className="h-3.5 w-3.5" />
             הוספת שיעור
@@ -204,7 +204,7 @@ export default function PortalPage() {
 
         {!busy && lessons.length === 0 && (
           <div className="rounded-2xl border border-dashed border-parch-300 bg-white/50 p-10 text-center">
-            <p className="font-display text-lg font-bold text-wine-700">אין עדיין שיעורים</p>
+            <p className="font-display text-lg font-bold text-royal-700">אין עדיין שיעורים</p>
             <p className="mt-1 text-sm text-ink-500">
               {hasAccounts
                 ? 'אפשר להוסיף שיעור חדש, והוא יופיע כאן מיד לאחר האישור.'
@@ -218,7 +218,7 @@ export default function PortalPage() {
             <div key={lesson.id} className="card-surface flex flex-wrap items-center gap-4 rounded-xl p-4">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="font-display text-base font-bold text-wine-700">
+                  <h3 className="font-display text-base font-bold text-royal-700">
                     {lesson.title || lesson.topic || 'שיעור תורה'}
                   </h3>
                   <span

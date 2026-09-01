@@ -17,7 +17,7 @@ export default async function JoinMaggidPage() {
     <div className="mx-auto max-w-[900px] px-4 py-8 sm:px-6">
       <Link
         href="/join"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה לבחירת הטופס
@@ -28,7 +28,7 @@ export default async function JoinMaggidPage() {
           <IconUser className="h-3.5 w-3.5" />
           רישום מגיד שיעור
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           הצטרפות כמגיד שיעור
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">

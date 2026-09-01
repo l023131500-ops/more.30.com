@@ -53,7 +53,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#4A1818',
+  themeColor: '#17353D',
   width: 'device-width',
   initialScale: 1,
 };
@@ -65,7 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:right-3 focus:z-[100]
-                     focus:rounded-lg focus:bg-wine-700 focus:px-4 focus:py-2 focus:text-gold-100"
+                     focus:rounded-lg focus:bg-royal-700 focus:px-4 focus:py-2 focus:text-gold-100"
         >
           דילוג לתוכן
         </a>

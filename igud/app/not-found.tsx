@@ -12,7 +12,7 @@ export default function NotFound() {
         height={96}
         className="h-20 w-20 opacity-90"
       />
-      <h1 className="mt-6 font-display text-2xl font-bold text-wine-700">הדף לא נמצא</h1>
+      <h1 className="mt-6 font-display text-2xl font-bold text-royal-700">הדף לא נמצא</h1>
       <p className="mt-2 text-sm text-ink-500">
         ייתכן שהשיעור הוסר מהמאגר, או שהקישור אינו מדויק.
       </p>

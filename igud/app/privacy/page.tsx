@@ -52,14 +52,14 @@ const SECTIONS = [
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-[800px] px-4 py-10 sm:px-6">
-      <h1 className="font-display text-3xl font-bold text-wine-700">פרטיות ותנאי שימוש</h1>
+      <h1 className="font-display text-3xl font-bold text-royal-700">פרטיות ותנאי שימוש</h1>
       <p className="mt-2 text-sm text-ink-500">איגוד השיעורים, מאגר זמני שיעורי התורה</p>
       <div className="rule-gold mt-6" />
 
       <div className="mt-8 space-y-8">
         {SECTIONS.map((section) => (
           <section key={section.title}>
-            <h2 className="font-display text-xl font-bold text-wine-700">{section.title}</h2>
+            <h2 className="font-display text-xl font-bold text-royal-700">{section.title}</h2>
             <div className="mt-2 space-y-2 text-[0.95rem] leading-relaxed text-ink-700">
               {section.body.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>{paragraph}</p>

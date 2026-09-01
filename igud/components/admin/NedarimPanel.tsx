@@ -247,7 +247,7 @@ export default function NedarimPanel({
                         type="checkbox"
                         checked={!isOff}
                         onChange={(e) => onFormChange(form, 'enabled', e.target.checked ? 'true' : 'false')}
-                        className="h-4 w-4 accent-wine-700"
+                        className="h-4 w-4 accent-royal-700"
                       />
                       פעיל
                     </label>

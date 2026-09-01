@@ -105,7 +105,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
     <article className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
       <Link
         href="/"
-        className="no-print mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="no-print mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה למאגר
@@ -115,7 +115,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         {/* ---------- ראשי ---------- */}
         <div>
           <div className="card-surface relative overflow-hidden rounded-2xl">
-            <div className="bg-gradient-to-l from-wine-700 to-wine-800 px-6 py-6 sm:px-8">
+            <div className="bg-gradient-to-l from-royal-700 to-royal-800 px-6 py-6 sm:px-8">
               <div className="flex items-start gap-5">
                 <span className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-xl
                                  border border-gold-500/40 bg-white/95 p-1.5 sm:h-24 sm:w-24">
@@ -145,7 +145,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
             {when.day !== 'בתיאום' && (
               <div className="flex items-center gap-3 border-b border-parch-200 bg-gold-50 px-6 py-3 sm:px-8">
                 <IconClock className="h-4 w-4 text-gold-700" />
-                <span className="text-sm font-bold text-wine-700">
+                <span className="text-sm font-bold text-royal-700">
                   המועד הקרוב: {when.day} בשעה {when.time}
                 </span>
               </div>
@@ -185,7 +185,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                       href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="no-print mt-1 inline-block text-[0.8rem] font-bold text-wine-600 underline underline-offset-2"
+                      className="no-print mt-1 inline-block text-[0.8rem] font-bold text-royal-600 underline underline-offset-2"
                     >
                       פתיחה במפה
                     </a>
@@ -245,7 +245,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                 <Detail icon={<IconPhone className="h-4 w-4" />} label="לפרטים">
                   {lesson.contact_name && <span>{lesson.contact_name} </span>}
                   {phoneHref ? (
-                    <a href={phoneHref} className="font-bold text-wine-600 tabular-nums underline underline-offset-2">
+                    <a href={phoneHref} className="font-bold text-royal-600 tabular-nums underline underline-offset-2">
                       {lesson.contact_phone}
                     </a>
                   ) : (
@@ -273,11 +273,11 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                 href={`/rabbi/${lesson.teacher_id}`}
                 className="card-surface flex items-center gap-3 rounded-xl px-5 py-4"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-lg bg-wine-700 text-gold-200">
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-royal-700 text-gold-200">
                   <IconUser className="h-5 w-5" />
                 </span>
                 <span>
-                  <span className="block font-display text-base font-bold text-wine-700">
+                  <span className="block font-display text-base font-bold text-royal-700">
                     לכל שיעורי הרב
                   </span>
                   <span className="block text-[0.78rem] text-ink-500">
@@ -291,11 +291,11 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
                 href={`/venue/${lesson.venue_id}`}
                 className="card-surface flex items-center gap-3 rounded-xl px-5 py-4"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-lg bg-gold-500 text-wine-800">
+                <span className="grid h-10 w-10 place-items-center rounded-lg bg-gold-500 text-royal-800">
                   <IconBuilding className="h-5 w-5" />
                 </span>
                 <span>
-                  <span className="block font-display text-base font-bold text-wine-700">
+                  <span className="block font-display text-base font-bold text-royal-700">
                     לכל השיעורים במקום
                   </span>
                   <span className="block text-[0.78rem] text-ink-500">{lesson.venue_name}</span>
@@ -308,7 +308,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
         {/* ---------- צד ---------- */}
         <aside className="no-print space-y-4 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-2xl border border-parch-300 bg-white/70 p-5">
-            <h2 className="font-display text-base font-bold text-wine-700">עדכון פרטי השיעור</h2>
+            <h2 className="font-display text-base font-bold text-royal-700">עדכון פרטי השיעור</h2>
             <p className="mt-2 text-[0.82rem] leading-relaxed text-ink-500">
               מגיד השיעור או האחראי על המקום יכולים לעדכן את הזמנים בכל עת,
               באתר, בעמדות נדרים פלוס או במערכת הקולית.
@@ -326,12 +326,12 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
 
           {venue && (
             <div className="rounded-2xl border border-parch-300 bg-white/70 p-5">
-              <h2 className="font-display text-base font-bold text-wine-700">{venue.name}</h2>
+              <h2 className="font-display text-base font-bold text-royal-700">{venue.name}</h2>
               {venue.nusach && <p className="mt-1 text-[0.8rem] text-ink-500">נוסח {venue.nusach}</p>}
               {venue.about && <p className="mt-2 text-[0.82rem] leading-relaxed text-ink-700">{venue.about}</p>}
               <Link
                 href={`/venue/${venue.id}`}
-                className="mt-3 inline-block text-[0.82rem] font-bold text-wine-600 underline underline-offset-2"
+                className="mt-3 inline-block text-[0.82rem] font-bold text-royal-600 underline underline-offset-2"
               >
                 כל השיעורים במקום
               </Link>
@@ -339,7 +339,7 @@ export default async function LessonPage({ params }: { params: Promise<{ id: str
           )}
 
           <div className="rounded-2xl border border-gold-400/60 bg-gold-50 p-5">
-            <h2 className="font-display text-base font-bold text-wine-700">מוסרים שיעור?</h2>
+            <h2 className="font-display text-base font-bold text-royal-700">מוסרים שיעור?</h2>
             <p className="mt-2 text-[0.82rem] leading-relaxed text-ink-700">
               הוסיפו את השיעור שלכם למאגר, ואלפי לומדים ימצאו אתכם.
             </p>

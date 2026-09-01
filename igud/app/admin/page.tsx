@@ -60,7 +60,7 @@ export default function AdminPage() {
     return (
       <div className="grid min-h-screen place-items-center px-4">
         <div className="card-surface max-w-md rounded-2xl p-8 text-center">
-          <h1 className="font-display text-xl font-bold text-wine-700">אין הרשאת ניהול</h1>
+          <h1 className="font-display text-xl font-bold text-royal-700">אין הרשאת ניהול</h1>
           <p className="mt-2 text-sm text-ink-500">
             החשבון הזה אינו מוגדר כמנהל המערכת.
           </p>
@@ -81,7 +81,7 @@ export default function AdminPage() {
         <div className="flex items-center gap-3">
           <Image src="/brand/mark-96.webp" alt="" width={96} height={96} className="h-11 w-11" />
           <div>
-            <h1 className="font-display text-xl font-bold text-wine-700">ניהול {SITE.name}</h1>
+            <h1 className="font-display text-xl font-bold text-royal-700">ניהול {SITE.name}</h1>
             <p className="text-[0.75rem] text-ink-500">{session.user.email}</p>
           </div>
         </div>
@@ -106,8 +106,8 @@ export default function AdminPage() {
                   onClick={() => setSection(item.id)}
                   className={`w-full whitespace-nowrap rounded-lg px-3.5 py-2 text-right text-[0.85rem] font-bold transition-colors ${
                     section === item.id
-                      ? 'bg-gradient-to-l from-wine-600 to-wine-700 text-gold-100'
-                      : 'text-ink-700 hover:bg-gold-50 hover:text-wine-700'
+                      ? 'bg-gradient-to-l from-royal-600 to-royal-700 text-gold-100'
+                      : 'text-ink-700 hover:bg-gold-50 hover:text-royal-700'
                   }`}
                 >
                   {item.label}

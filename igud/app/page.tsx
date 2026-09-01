@@ -91,7 +91,7 @@ function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; la
         {icon}
       </span>
       <span className="leading-tight">
-        <span className="block font-display text-xl font-bold tabular-nums text-wine-700">{value}</span>
+        <span className="block font-display text-xl font-bold tabular-nums text-royal-700">{value}</span>
         <span className="block text-[0.72rem] text-ink-500">{label}</span>
       </span>
     </div>
@@ -107,7 +107,7 @@ export default async function HomePage() {
       {/* ---------- כותרת ראשית ---------- */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]">
-          <div className="absolute left-[-8%] top-[-30%] h-[34rem] w-[34rem] rounded-full bg-wine-600 blur-3xl" />
+          <div className="absolute left-[-8%] top-[-30%] h-[34rem] w-[34rem] rounded-full bg-royal-600 blur-3xl" />
           <div className="absolute right-[-6%] top-[10%] h-[26rem] w-[26rem] rounded-full bg-gold-500 blur-3xl" />
         </div>
 
@@ -118,7 +118,7 @@ export default async function HomePage() {
               {hebrewToday}
             </span>
 
-            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.15] text-wine-700 sm:text-5xl lg:text-[3.4rem]">
+            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.15] text-royal-700 sm:text-5xl lg:text-[3.4rem]">
               כל שיעורי התורה בארץ,
               <br />
               <span className="text-gold-600">במקום אחד</span>
@@ -178,7 +178,7 @@ export default async function HomePage() {
       <div className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-6">
         {!data.ready ? (
           <div className="rounded-2xl border border-dashed border-parch-300 bg-white/60 p-12 text-center">
-            <h2 className="font-display text-xl font-bold text-wine-700">המאגר בהתחברות</h2>
+            <h2 className="font-display text-xl font-bold text-royal-700">המאגר בהתחברות</h2>
             <p className="mt-2 text-sm text-ink-500">
               לא הושלמה ההגדרה של מסד הנתונים. יש להשלים את משתני הסביבה של Supabase.
             </p>
@@ -206,7 +206,7 @@ export default async function HomePage() {
 
       {/* ---------- הצטרפות ---------- */}
       <section className="mx-auto mt-20 max-w-[1400px] px-4 sm:px-6">
-        <div className="overflow-hidden rounded-3xl border border-gold-400/60 bg-gradient-to-l from-wine-700 to-wine-800 p-8 text-gold-100 sm:p-12">
+        <div className="overflow-hidden rounded-3xl border border-gold-400/60 bg-gradient-to-l from-royal-700 to-royal-800 p-8 text-gold-100 sm:p-12">
           <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
             <div>
               <h2 className="font-display text-2xl font-bold sm:text-3xl">

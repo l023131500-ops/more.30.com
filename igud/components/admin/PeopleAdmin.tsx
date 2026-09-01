@@ -155,7 +155,7 @@ export default function PeopleAdmin({ kind }: { kind: Kind }) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-display text-base font-bold text-wine-700">{row.name}</span>
+                  <span className="font-display text-base font-bold text-royal-700">{row.name}</span>
                   <StatusBadge status={row.status} />
                 </div>
                 <p className="text-[0.78rem] text-ink-500">
@@ -207,7 +207,7 @@ export default function PeopleAdmin({ kind }: { kind: Kind }) {
 
             {creating?.id === row.id && (
               <div className="mt-4 rounded-lg border border-gold-400 bg-gold-50 p-4">
-                <p className="text-[0.82rem] font-bold text-wine-700">
+                <p className="text-[0.82rem] font-bold text-royal-700">
                   פתיחת חשבון לאזור האישי עבור {row.name}
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-3">

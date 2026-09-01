@@ -148,7 +148,7 @@ export default function JoinMaggidForm({ taxonomy }: { taxonomy: Taxonomy }) {
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gold-100 text-gold-700">
           <IconCheck className="h-8 w-8" strokeWidth={2} />
         </span>
-        <h2 className="mt-5 font-display text-2xl font-bold text-wine-700">הרישום נקלט</h2>
+        <h2 className="mt-5 font-display text-2xl font-bold text-royal-700">הרישום נקלט</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-700">
           תודה. הפרטים נשמרו במאגר מגידי השיעור של האיגוד. כשיימצא מקום שמתאים
           לסגנון ולזמינות שלכם, ניצור קשר.
@@ -171,10 +171,10 @@ export default function JoinMaggidForm({ taxonomy }: { taxonomy: Taxonomy }) {
             >
               <span
                 className={`block h-1.5 rounded-full transition-colors ${
-                  i < step ? 'bg-gold-500' : i === step ? 'bg-wine-600' : 'bg-parch-300'
+                  i < step ? 'bg-gold-500' : i === step ? 'bg-royal-600' : 'bg-parch-300'
                 }`}
               />
-              <span className={`mt-1.5 block text-[0.7rem] font-bold ${i === step ? 'text-wine-700' : 'text-ink-500'}`}>
+              <span className={`mt-1.5 block text-[0.7rem] font-bold ${i === step ? 'text-royal-700' : 'text-ink-500'}`}>
                 {title}
               </span>
             </button>
@@ -376,7 +376,7 @@ export default function JoinMaggidForm({ taxonomy }: { taxonomy: Taxonomy }) {
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg border border-wine-300 bg-wine-50 px-4 py-3 text-sm font-bold text-wine-700">
+        <p className="mt-4 rounded-lg border border-royal-300 bg-royal-50 px-4 py-3 text-sm font-bold text-royal-700">
           {error}
         </p>
       )}

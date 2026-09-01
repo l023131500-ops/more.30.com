@@ -217,7 +217,7 @@ export default function AddLessonForm({ taxonomy }: { taxonomy: Taxonomy }) {
         <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gold-100 text-gold-700">
           <IconCheck className="h-8 w-8" strokeWidth={2} />
         </span>
-        <h2 className="mt-5 font-display text-2xl font-bold text-wine-700">השיעור נקלט</h2>
+        <h2 className="mt-5 font-display text-2xl font-bold text-royal-700">השיעור נקלט</h2>
         <p className="mt-3 text-sm leading-relaxed text-ink-700">
           תודה. השיעור נשלח לאישור צוות האיגוד, ויתפרסם במאגר לאחר בדיקה.
           אם יידרשו הבהרות, ניצור קשר בטלפון שמסרתם.
@@ -253,12 +253,12 @@ export default function AddLessonForm({ taxonomy }: { taxonomy: Taxonomy }) {
             >
               <span
                 className={`block h-1.5 rounded-full transition-colors ${
-                  i < step ? 'bg-gold-500' : i === step ? 'bg-wine-600' : 'bg-parch-300'
+                  i < step ? 'bg-gold-500' : i === step ? 'bg-royal-600' : 'bg-parch-300'
                 }`}
               />
               <span
                 className={`mt-1.5 block text-[0.7rem] font-bold ${
-                  i === step ? 'text-wine-700' : 'text-ink-500'
+                  i === step ? 'text-royal-700' : 'text-ink-500'
                 }`}
               >
                 {s.title}
@@ -392,7 +392,7 @@ export default function AddLessonForm({ taxonomy }: { taxonomy: Taxonomy }) {
               )}
 
               <div>
-                <div className="field-label">ימי השיעור<span className="mr-1 text-wine-500">*</span></div>
+                <div className="field-label">ימי השיעור<span className="mr-1 text-royal-500">*</span></div>
                 <div className="space-y-2">
                   {DAY_SLOTS.map((slot: { label: string }) => {
                     const state = days[slot.label];
@@ -586,7 +586,7 @@ export default function AddLessonForm({ taxonomy }: { taxonomy: Taxonomy }) {
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg border border-wine-300 bg-wine-50 px-4 py-3 text-sm font-bold text-wine-700">
+        <p className="mt-4 rounded-lg border border-royal-300 bg-royal-50 px-4 py-3 text-sm font-bold text-royal-700">
           {error}
         </p>
       )}

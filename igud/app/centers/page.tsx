@@ -51,7 +51,7 @@ export default async function CentersPage() {
           <IconBuilding className="h-3.5 w-3.5" />
           מרכזי תורה
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           בתי כנסת, בתי מדרש וכוללים
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
@@ -62,7 +62,7 @@ export default async function CentersPage() {
 
       {cities.map(([city, items]) => (
         <section key={city} className="mb-10">
-          <h2 className="mb-3 flex items-baseline gap-2 font-display text-xl font-bold text-wine-700">
+          <h2 className="mb-3 flex items-baseline gap-2 font-display text-xl font-bold text-royal-700">
             <span className="crest-title">{city}</span>
             <span className="text-sm font-normal text-ink-500">{items.length}</span>
           </h2>
@@ -93,7 +93,7 @@ export default async function CentersPage() {
                     />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-display text-[1.02rem] font-bold text-wine-700">
+                    <span className="block truncate font-display text-[1.02rem] font-bold text-royal-700">
                       {venue.name}
                     </span>
                     {address && (

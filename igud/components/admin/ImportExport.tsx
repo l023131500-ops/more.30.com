@@ -251,7 +251,7 @@ export default function ImportExport() {
 
           {preview && (
             <div className="rounded-xl border border-gold-400 bg-gold-50 p-5">
-              <h3 className="font-display text-base font-bold text-wine-700">
+              <h3 className="font-display text-base font-bold text-royal-700">
                 טופס {preview.form} · {FORM_NAMES[preview.form]}
               </h3>
               <p className="mt-1 text-sm text-ink-700">
@@ -267,7 +267,7 @@ export default function ImportExport() {
                     type="checkbox"
                     checked={publish}
                     onChange={(e) => setPublish(e.target.checked)}
-                    className="h-4 w-4 accent-[#4A1818]"
+                    className="h-4 w-4 accent-[#17353D]"
                   />
                   לפרסם מיד רשומות שעברו את בדיקת האיכות
                 </label>

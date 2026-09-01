@@ -25,7 +25,7 @@ export default async function AddPage() {
     <div className="mx-auto max-w-[900px] px-4 py-8 sm:px-6">
       <Link
         href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-wine-600"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
       >
         <IconArrowLeft className="h-4 w-4" />
         חזרה למאגר
@@ -36,13 +36,13 @@ export default async function AddPage() {
           <IconSparkle className="h-3.5 w-3.5" />
           מעוניינים להפיץ תורה?
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold text-wine-700 sm:text-4xl">
+        <h1 className="mt-1 font-display text-3xl font-bold text-royal-700 sm:text-4xl">
           הוספת שיעור למאגר
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
           שישה שלבים קצרים, ואלפי לומדים ימצאו את השיעור שלכם. כל שיעור עובר אישור
           לפני שהוא מתפרסם. אפשר גם לעדכן במערכת הקולית{' '}
-          <a href={`tel:${SITE.voiceLine}`} className="font-bold text-wine-600">{SITE.voiceLine}</a>
+          <a href={`tel:${SITE.voiceLine}`} className="font-bold text-royal-600">{SITE.voiceLine}</a>
           {' '}או בעמדות נדרים פלוס.
         </p>
       </header>
@@ -53,9 +53,9 @@ export default async function AddPage() {
         <IconPhone className="h-5 w-5 text-gold-600" />
         <p className="text-[0.85rem] text-ink-700">
           זקוקים לעזרה במילוי? מתקשרים למערכת הקולית{' '}
-          <a href={`tel:${SITE.voiceLine}`} className="font-bold text-wine-600">{SITE.voiceLine}</a>
+          <a href={`tel:${SITE.voiceLine}`} className="font-bold text-royal-600">{SITE.voiceLine}</a>
           {' '}או שולחים דוא"ל אל{' '}
-          <a href={`mailto:${SITE.email}`} className="font-bold text-wine-600">{SITE.email}</a>
+          <a href={`mailto:${SITE.email}`} className="font-bold text-royal-600">{SITE.email}</a>
         </p>
       </aside>
     </div>

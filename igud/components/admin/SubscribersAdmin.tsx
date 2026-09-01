@@ -91,7 +91,7 @@ export default function SubscribersAdmin() {
               </div>
               <p className="flex flex-wrap items-center gap-x-3 text-[0.78rem] text-ink-500">
                 {row.phone && (
-                  <a href={`tel:${row.phone}`} className="flex items-center gap-1 font-bold text-wine-600" dir="ltr">
+                  <a href={`tel:${row.phone}`} className="flex items-center gap-1 font-bold text-royal-600" dir="ltr">
                     <IconPhone className="h-3 w-3" />
                     {row.phone}
                   </a>

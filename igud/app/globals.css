@@ -2,45 +2,48 @@
 
 /* ============================================================
    איגוד השיעורים — שפה עיצובית
-   הפלטה נדגמה ישירות מקובץ המיתוג: יין, זהב עתיק וקלף.
+   הפלטה נדגמה ישירות מהלוגו: טורקיז־פטרול עמוק, זהב עתיק וקלף.
    ============================================================ */
 
 @theme {
-  --color-wine-50:  #FBF3F2;
-  --color-wine-100: #F5E2E0;
-  --color-wine-200: #E7C2BF;
-  --color-wine-300: #D19A96;
-  --color-wine-400: #A85E5B;
-  --color-wine-500: #82393A;
-  --color-wine-600: #602424;
-  --color-wine-700: #4A1818;
-  --color-wine-800: #360F10;
-  --color-wine-900: #26090A;
+  /* גוף האובל שבלוגו, מהעמוק שבקצוות ועד ההבהוב שבמרכז */
+  --color-royal-50:  #F2F7F8;
+  --color-royal-100: #DDECEF;
+  --color-royal-200: #B6D3DA;
+  --color-royal-300: #84B3BE;
+  --color-royal-400: #4C8998;
+  --color-royal-500: #2E6B7B;
+  --color-royal-600: #1F4E5B;
+  --color-royal-700: #17353D;
+  --color-royal-800: #102831;
+  --color-royal-900: #0A1B21;
 
-  --color-gold-50:  #FDFAF0;
-  --color-gold-100: #F8F0D9;
-  --color-gold-200: #F0E4C0;
-  --color-gold-300: #E4D8B4;
-  --color-gold-400: #D8C090;
-  --color-gold-500: #C6A75C;
-  --color-gold-600: #A8823B;
-  --color-gold-700: #85642B;
+  /* המסגרת והעיטורים: זהב עתיק, לא צהוב */
+  --color-gold-50:  #FDFBF2;
+  --color-gold-100: #F7F1DE;
+  --color-gold-200: #EFE6C8;
+  --color-gold-300: #EAE1C0;
+  --color-gold-400: #D9C79A;
+  --color-gold-500: #C4A868;
+  --color-gold-600: #A98945;
+  --color-gold-700: #856A32;
 
-  --color-parch-50:  #FDFBF6;
-  --color-parch-100: #FAF6EC;
-  --color-parch-200: #F3ECDC;
-  --color-parch-300: #E8DEC8;
+  /* הקלף שבמגילה. קריר במעט, כדי לשבת נכון לצד הטורקיז */
+  --color-parch-50:  #FCFCFA;
+  --color-parch-100: #F7F6F1;
+  --color-parch-200: #EDEBE2;
+  --color-parch-300: #DFDCCF;
 
-  --color-ink-500: #6B5A55;
-  --color-ink-700: #45302C;
-  --color-ink-900: #2A1512;
+  --color-ink-500: #647A82;
+  --color-ink-700: #33474E;
+  --color-ink-900: #16262B;
 
   --font-display: var(--font-frank), "David Libre", Georgia, serif;
   --font-body: var(--font-alef), "Segoe UI", system-ui, sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(42 21 18 / 0.05), 0 8px 24px -12px rgb(42 21 18 / 0.18);
-  --shadow-lift: 0 2px 4px rgb(42 21 18 / 0.06), 0 18px 40px -18px rgb(42 21 18 / 0.32);
-  --shadow-float: 0 10px 30px -6px rgb(74 24 24 / 0.45);
+  --shadow-card: 0 1px 2px rgb(22 38 43 / 0.05), 0 8px 24px -12px rgb(22 38 43 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(22 38 43 / 0.06), 0 18px 40px -18px rgb(22 38 43 / 0.32);
+  --shadow-float: 0 10px 30px -6px rgb(23 53 61 / 0.45);
 }
 
 /* ---------- בסיס ---------- */
@@ -68,7 +71,7 @@ h1, h2, h3, h4, .font-display {
 
 ::selection {
   background: var(--color-gold-300);
-  color: var(--color-wine-800);
+  color: var(--color-royal-800);
 }
 
 /* ---------- גלילה ---------- */
@@ -238,7 +241,7 @@ h1, h2, h3, h4, .font-display {
   margin-bottom: 0.35rem;
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--color-wine-700);
+  color: var(--color-royal-700);
 }
 
 /* אסימוני בחירה */
@@ -263,8 +266,8 @@ h1, h2, h3, h4, .font-display {
   transform: translateY(-1px);
 }
 .chip[data-on="true"] {
-  border-color: var(--color-wine-600);
-  background: linear-gradient(160deg, var(--color-wine-600), var(--color-wine-700));
+  border-color: var(--color-royal-600);
+  background: linear-gradient(160deg, var(--color-royal-600), var(--color-royal-700));
   color: var(--color-gold-100);
   box-shadow: 0 4px 12px -4px rgb(74 24 24 / 0.5);
 }
@@ -290,9 +293,9 @@ h1, h2, h3, h4, .font-display {
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .btn-primary {
-  background: linear-gradient(160deg, var(--color-wine-600), var(--color-wine-800));
+  background: linear-gradient(160deg, var(--color-royal-600), var(--color-royal-800));
   color: var(--color-gold-100);
-  border: 1px solid var(--color-wine-800);
+  border: 1px solid var(--color-royal-800);
   box-shadow: 0 6px 18px -8px rgb(54 15 16 / 0.7);
 }
 .btn-primary:hover:not(:disabled) {
@@ -302,7 +305,7 @@ h1, h2, h3, h4, .font-display {
 
 .btn-gold {
   background: linear-gradient(160deg, var(--color-gold-300), var(--color-gold-500));
-  color: var(--color-wine-800);
+  color: var(--color-royal-800);
   border: 1px solid var(--color-gold-600);
   box-shadow: 0 6px 18px -9px rgb(133 100 43 / 0.75);
 }
@@ -310,7 +313,7 @@ h1, h2, h3, h4, .font-display {
 
 .btn-quiet {
   background: #FFFDF8;
-  color: var(--color-wine-700);
+  color: var(--color-royal-700);
   border: 1px solid var(--color-parch-300);
 }
 .btn-quiet:hover:not(:disabled) {

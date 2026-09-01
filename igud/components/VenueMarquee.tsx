@@ -34,7 +34,7 @@ function Tile({ item }: { item: VenueTile }) {
           />
         </span>
         <div className="min-w-0">
-          <h3 className="truncate font-display text-base font-bold text-wine-700">{venue.name}</h3>
+          <h3 className="truncate font-display text-base font-bold text-royal-700">{venue.name}</h3>
           <p className="flex items-center gap-1 truncate text-[0.75rem] text-ink-500">
             <IconPin className="h-3 w-3 shrink-0 text-gold-500" />
             {address || venue.kind}
@@ -76,7 +76,7 @@ export default function VenueMarquee({ items }: { items: VenueTile[] }) {
       <div className="mx-auto mb-5 max-w-[1400px] px-4 sm:px-6">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-bold text-wine-700">שיעורים ממרכזי תורה</h2>
+            <h2 className="font-display text-2xl font-bold text-royal-700">שיעורים ממרכזי תורה</h2>
             <p className="mt-1 text-sm text-ink-500">
               בתי כנסת, בתי מדרש וכוללים. לחיצה על מקום מציגה את כל השיעורים שנמסרים בו.
             </p>
