@@ -1,7 +1,8 @@
 import { publicClient } from '@/lib/supabase';
 import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
-import { askMode, freeMessage } from '@/lib/ivr-flows';
+import { askMode, farewell, freeMessage } from '@/lib/ivr-flows';
+import { loadCopy } from '@/lib/ivr-copy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -19,21 +20,20 @@ async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
+  const c = await loadCopy(client);
 
   if (isHangup(params)) return respond(noop('המתקשר ניתק'));
 
   if (!params.mode) {
-    return askMode(
-      'שמחים שבאתם למסור תורה',
-      'כמה פרטים קצרים, ונציג מהאיגוד יחזור אליכם',
-    );
+    return askMode(c, c('maggid.intro.1'), c('maggid.intro.2'));
   }
 
   const free = await freeMessage(client, params, {
     kind: 'join',
     requestKind: 'maggid',
     phone,
-    invite: 'ספרו בקצרה על עצמכם. באיזה נושא תרצו למסור, ובאיזה אזור',
+    invite: c('maggid.freeInvite'),
+    copy: c,
   });
   if (free) return free;
 
@@ -41,7 +41,7 @@ async function handle(request: Request) {
   const cityChoice = pagedChoice(params, 'city', cities);
   if ('askText' in cityChoice) {
     return respond(
-      say('באיזו עיר אתם גרים'),
+      say(c('maggid.cityAsk')),
       read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
     );
   }
@@ -50,15 +50,15 @@ async function handle(request: Request) {
   const topicChoice = pagedChoice(params, 'topic', topics);
   if ('askText' in topicChoice) {
     return respond(
-      say('באיזה נושא תרצו למסור'),
+      say(c('maggid.topicAsk')),
       read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
     );
   }
 
   if (!params.audience) {
     return respond(
-      say('ולמי מתאים לכם למסור'),
-      read('לגברים הקישו 1. לנשים הקישו 2. לשניהם הקישו 3', 'audience', { min: 1, max: 1 }),
+      say(c('maggid.audienceAsk')),
+      read(c('maggid.audienceMenu'), 'audience', { min: 1, max: 1 }),
     );
   }
 
@@ -79,17 +79,12 @@ async function handle(request: Request) {
   });
   if (error) {
     return respond(
-      say('משהו השתבש בשמירת הפרטים', 'נשמח אם תנסו שוב בעוד כמה דקות'),
+      say(c('nav.error'), c('nav.retry')),
       hangup(),
     );
   }
 
-  return respond(
-    say('הפרטים נקלטו'),
-    say('נציג מהאיגוד יחזור אליכם בימים הקרובים להשלמת השאלון'),
-    say('תודה שבחרתם להרביץ תורה ברבים'),
-    hangup(),
-  );
+  return farewell(c, c('maggid.done.1'), c('maggid.done.2'), c('maggid.done.3'));
 }
 
 export const GET = handle;

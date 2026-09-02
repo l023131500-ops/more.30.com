@@ -7,6 +7,7 @@ import { IconCheck, IconCopy, IconLink } from '../Icons';
 import { Panel, Toast } from './ui';
 import NedarimPanel from './NedarimPanel';
 import YemotFiles from './YemotFiles';
+import IvrCopyAdmin from './IvrCopyAdmin';
 
 type Group = Record<string, unknown>;
 type Settings = Record<string, Group>;
@@ -227,6 +228,8 @@ export default function SettingsAdmin() {
           />
         </div>
       </Panel>
+
+      <IvrCopyAdmin />
 
       <YemotFiles rootExt={text(settings.yemot, 'rootExt') || '1'} />
 

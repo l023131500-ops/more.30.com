@@ -1,7 +1,8 @@
 import { publicClient } from '@/lib/supabase';
 import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
-import { askMode, freeMessage } from '@/lib/ivr-flows';
+import { askMode, farewell, freeMessage } from '@/lib/ivr-flows';
+import { loadCopy } from '@/lib/ivr-copy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -18,32 +19,27 @@ async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
+  const c = await loadCopy(client);
 
   if (isHangup(params)) return respond(noop('המתקשר ניתק'));
 
   if (!params.mode) {
-    return askMode(
-      'רוצים לפתוח שיעור תורה',
-      'כמה פרטים קצרים, וצוות האיגוד יחפש עבורכם מגיד שיעור',
-    );
+    return askMode(c, c('host.intro.1'), c('host.intro.2'));
   }
 
   const free = await freeMessage(client, params, {
     kind: 'host',
     requestKind: 'open_lesson',
     phone,
-    invite: 'ספרו איזה שיעור אתם מחפשים. באיזה מקום, ובאילו זמנים',
+    invite: c('host.freeInvite'),
+    copy: c,
   });
   if (free) return free;
 
   if (!params.kind) {
     return respond(
-      say('בשביל מי השיעור'),
-      read(
-        'לבית כנסת הקישו 1. למרכז תורני או ארגון הקישו 2. לקבוצת לומדים או חוג בית הקישו 3',
-        'kind',
-        { min: 1, max: 1 },
-      ),
+      say(c('host.kindAsk')),
+      read(c('host.kindMenu'), 'kind', { min: 1, max: 1 }),
     );
   }
 
@@ -51,7 +47,7 @@ async function handle(request: Request) {
   const cityChoice = pagedChoice(params, 'city', cities);
   if ('askText' in cityChoice) {
     return respond(
-      say('באיזו עיר'),
+      say(c('host.cityAsk')),
       read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
     );
   }
@@ -60,7 +56,7 @@ async function handle(request: Request) {
   const topicChoice = pagedChoice(params, 'topic', topics);
   if ('askText' in topicChoice) {
     return respond(
-      say('ובאיזה נושא'),
+      say(c('host.topicAsk')),
       read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
     );
   }
@@ -82,17 +78,12 @@ async function handle(request: Request) {
   });
   if (error) {
     return respond(
-      say('משהו השתבש בשמירת הפרטים', 'נשמח אם תנסו שוב בעוד כמה דקות'),
+      say(c('nav.error'), c('nav.retry')),
       hangup(),
     );
   }
 
-  return respond(
-    say('הבקשה נקלטה'),
-    say('צוות האיגוד יחפש מגיד שיעור שמתאים לכם ויחזור אליכם'),
-    say('שיצליח השיעור ויתרבה הלימוד'),
-    hangup(),
-  );
+  return farewell(c, c('host.done.1'), c('host.done.2'), c('host.done.3'));
 }
 
 export const GET = handle;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/supabase';
+import { loadCopy } from '@/lib/ivr-copy';
 import {
   EXTENSIONS, apiExtensionIni, getSession, rootMenuIni, uploadTextFile, yemotConfig,
 } from '@/lib/yemot';
@@ -11,7 +12,7 @@ export const maxDuration = 60;
 /**
  * בניית שלוחות האיגוד במערכת הקולית.
  *
- * יוצר תפריט ראשי תחת שלוחת הבסיס, ומתחתיו חמש שלוחות API.
+ * יוצר תפריט ראשי תחת שלוחת הבסיס, ומתחתיו שמונה שלוחות API.
  * כל הכתיבות מוגבלות לשלוחת הבסיס בלבד, ואין כאן שום פעולת מחיקה.
  */
 export async function POST(request: Request) {
@@ -31,7 +32,9 @@ export async function POST(request: Request) {
     const origin = new URL(request.url).origin || SITE.url;
     const root = config.rootExt;
 
-    await uploadTextFile(config, `ivr2:/${root}/ext.ini`, rootMenuIni());
+    // התפריט נכתב מהנוסחים שבניהול, ולכן שינוי טקסט שם מגיע לימות בלחיצה
+    const copy = await loadCopy(client);
+    await uploadTextFile(config, `ivr2:/${root}/ext.ini`, rootMenuIni(copy));
 
     let created = 1;
     for (const plan of EXTENSIONS) {

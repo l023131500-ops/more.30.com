@@ -139,6 +139,60 @@ export function sayDigits(value: string): string {
   return clean ? `id_list_message=d-${clean}` : '';
 }
 
+/* ---------- סליקה ---------- */
+
+export interface PaymentPlan {
+  /** שם הסולק כפי שימות מכירה אותו, למשל nedarim */
+  provider: string;
+  /** סכום לחיוב בשקלים. בלי סכום, המתקשר בוחר בעצמו */
+  amount?: number | string;
+  /** מספר חנות או פרויקט אצל הסולק */
+  shop?: string;
+  /** כמות תשלומים. בלי ערך, המתקשר בוחר */
+  payments?: number | string;
+  /** 1 שקל, 2 דולר */
+  currency?: number | string;
+  userName?: string;
+  terminal?: string;
+  password?: string;
+}
+
+/**
+ * מעבר לסליקת אשראי בתוך השיחה.
+ *
+ * סדר הערכים קבוע ואינו מתועד בשמות, ולכן הוא נכתב כאן פעם אחת:
+ * סולק, סכום, מספר חנות, תשלומים, מטבע, סוג פלאקארד, שם משתמש,
+ * טרמינל, סיסמה, תשובה מלאה, שידור טלפון, הקלטת שם, דילוג על אישור,
+ * יצירת טוקן, והתנהגות בכוכבית.
+ *
+ * GoBack בסוף אינו קישוט: בלעדיו מתקשר שמקיש כוכבית באמצע הסליקה
+ * נלכד בלולאה שמחזירה אותו לגבייה שוב ושוב. איתו, השרת מקבל בחזרה
+ * CreditCard_CODE=GoBack ויכול להחליט מה להציע לו.
+ *
+ * אחרי סליקה מוצלחת ימות קוראת שוב לשרת עם כל הפרמטרים הקודמים
+ * ובתוספת CreditCard_CODE, ולכן המשך השיחה נכתב כאן ולא בימות.
+ */
+export function creditCard(plan: PaymentPlan): string {
+  const values = [
+    plan.provider,
+    plan.amount ?? '',
+    plan.shop ?? '',
+    plan.payments ?? '',
+    plan.currency ?? 1,
+    '',
+    plan.userName ?? '',
+    plan.terminal ?? '',
+    plan.password ?? '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    'GoBack',
+  ];
+  return `credit_card=${values.join(',')}`;
+}
+
 /** מעבר לשלוחה אחרת. */
 export function goToFolder(path: string): string {
   return `go_to_folder=${path}`;
@@ -334,36 +388,48 @@ export interface ExtensionPlan {
  * ענף של תפריט זה יושב. כך 5 ו-6 מתפנות למה שאין לו מקום אחר.
  */
 export const EXTENSIONS: ExtensionPlan[] = [
-  { ext: '1', title: 'לחיפוש שיעור', apiPath: '/api/yemot/search' },
-  { ext: '2', title: 'לעדכון שיעור שכבר במאגר', apiPath: '/api/yemot/update' },
-  { ext: '3', title: 'להצטרף כמגיד שיעור', apiPath: '/api/yemot/maggid' },
-  { ext: '4', title: 'לפתוח שיעור חדש', apiPath: '/api/yemot/host' },
-  { ext: '5', title: 'להיות שותפים', apiPath: '/api/yemot/partner' },
-  { ext: '6', title: 'לדבר עם נציג', apiPath: '/api/yemot/contact' },
+  { ext: '1', title: 'חיפוש שיעור', apiPath: '/api/yemot/search' },
+  { ext: '2', title: 'הוספה ועדכון של שיעור', apiPath: '/api/yemot/update' },
+  { ext: '3', title: 'הצטרפות למגידי השיעורים', apiPath: '/api/yemot/maggid' },
+  { ext: '4', title: 'הקמת שיעור חדש', apiPath: '/api/yemot/host' },
+  { ext: '5', title: 'שותפות בזיכוי הרבים', apiPath: '/api/yemot/partner' },
+  { ext: '6', title: 'מענה אנושי', apiPath: '/api/yemot/contact' },
+  { ext: '7', title: 'אזור אישי', apiPath: '/api/yemot/personal' },
+  { ext: '8', title: 'פורטל מגידי השיעורים', apiPath: '/api/yemot/portal' },
 ];
 
-/** נוסח הפתיחה של הקו, במקום אחד. */
-export const WELCOME = [
-  'ברוכים הבאים לאיגוד השיעורים',
-  'הבית של שיעורי התורה בארץ ישראל',
-];
+/**
+ * שורות תפריט הבסיס, לפי סדר ההשמעה.
+ *
+ * הן נבנות מהנוסחים ולא מרשימת השלוחות, כי מי שעורך את הקו רוצה
+ * לשנות מילה בתפריט בלי לגעת בקוד. הפונקציה מקבלת את קורא הנוסחים
+ * ולכן היא עובדת גם עם ברירות המחדל וגם עם מה שנערך בניהול.
+ */
+export function rootMenuLines(c: (key: string) => string): string[] {
+  const keys = [
+    'root.welcome.1', 'root.welcome.2',
+    'root.ext.1', 'root.ext.2', 'root.ext.3', 'root.ext.4',
+    'root.ext.5', 'root.ext.6', 'root.ext.7', 'root.ext.8',
+    'root.footer.1',
+  ];
+  return keys.map((key) => c(key)).filter(Boolean);
+}
 
 /**
  * תוכן ext.ini של תפריט הבסיס.
  *
  * הנקודה מפרידה בין הודעה להודעה, ולכן כל שורה כאן היא הודעה בפני
  * עצמה ולא סימן פיסוק. כך גם נשמעת נשימה בין הברכה לתפריט.
+ *
+ * timeout ארוך יחסית בכוונה: התפריט הזה בן אחת עשרה הודעות, ומתקשר
+ * ששומע אותו בפעם הראשונה צריך זמן להחליט אחרי שהוא נגמר.
  */
-export function rootMenuIni(): string {
-  const lines = [
-    ...WELCOME,
-    'לאיזה שירות תרצו להגיע',
-    ...EXTENSIONS.map((e) => `${e.title} הקישו ${e.ext}`),
-  ];
+export function rootMenuIni(c: (key: string) => string): string {
+  const lines = rootMenuLines(c).map((line) => `t-${speakable(line)}`);
   return [
     'type=menu',
-    'timeout=10',
-    `enter_id_list_message=${lines.map((line) => `t-${line}`).join('.')}`,
+    'timeout=12',
+    `enter_id_list_message=${lines.join('.')}`,
     'first_time_playing=yes',
   ].join('\n');
 }

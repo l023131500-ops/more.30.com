@@ -1,6 +1,7 @@
 import { publicClient } from '@/lib/supabase';
 import { goHome, isHangup, noop, read, respond, say, sayDigits, yemotParams } from '@/lib/yemot';
 import { freeMessage } from '@/lib/ivr-flows';
+import { loadCopy } from '@/lib/ivr-copy';
 import { SITE } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
@@ -19,25 +20,22 @@ async function handle(request: Request) {
   const params = await yemotParams(request);
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
+  const c = await loadCopy(client);
 
   if (isHangup(params)) return respond(noop('המתקשר ניתק'));
 
   if (!params.mode) {
     return respond(
-      say('הגעתם למענה האנושי של האיגוד', 'כאן אפשר לשאול כל דבר'),
-      read(
-        'להשאיר הודעה ונחזור אליכם הקישו 1. לשמוע את מספר הטלפון של המשרד הקישו 2',
-        'mode',
-        { min: 1, max: 1 },
-      ),
+      say(c('contact.intro.1'), c('contact.intro.2')),
+      read(c('contact.menu'), 'mode', { min: 1, max: 1 }),
     );
   }
 
   if (params.mode === '2') {
     return respond(
-      say('מספר הטלפון של משרדי האיגוד'),
+      say(c('contact.phone')),
       sayDigits(SITE.voiceLine),
-      say('אפשר גם להשאיר כאן הודעה, ונחזור אליכם'),
+      say(c('contact.phoneAfter'), c('nav.bye')),
       goHome(),
     );
   }
@@ -47,11 +45,12 @@ async function handle(request: Request) {
     kind: 'human',
     requestKind: 'open_lesson',
     phone,
-    invite: 'ספרו לנו במה נוכל לעזור, ונחזור אליכם',
+    invite: c('contact.freeInvite'),
+    copy: c,
   });
   if (free) return free;
 
-  return respond(say('לא זיהינו את הבחירה', 'נחזור לתפריט'), goHome());
+  return respond(say(c('nav.notFound'), c('nav.back')), goHome());
 }
 
 export const GET = handle;

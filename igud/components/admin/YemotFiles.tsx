@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { EXTENSIONS, apiExtensionIni, rootMenuIni } from '@/lib/yemot';
+import { copyDefaults } from '@/lib/ivr-copy';
 import { SITE } from '@/lib/site';
 import { IconCheck, IconCopy } from '../Icons';
 import { Panel } from './ui';
@@ -92,7 +93,7 @@ export default function YemotFiles({ rootExt }: { rootExt: string }) {
         <FileBlock
           title="תפריט ראשי"
           path={`ivr2:/${root}/ext.ini`}
-          contents={rootMenuIni()}
+          contents={rootMenuIni(copyDefaults)}
         />
         {EXTENSIONS.map((plan) => (
           <FileBlock

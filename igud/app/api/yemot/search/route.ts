@@ -1,9 +1,11 @@
 import { publicClient } from '@/lib/supabase';
-import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
+import { goHome, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
 import {
   citiesWithin, countFor, describeLesson, keywordSearch, pagedChoice, upcomingFor,
 } from '@/lib/ivr';
 import { describeIntent, logRequest, readIntent, type Intent } from '@/lib/ivr-ai';
+import { farewell, isBack, isHome, roundOf } from '@/lib/ivr-flows';
+import { loadCopy } from '@/lib/ivr-copy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -34,26 +36,22 @@ export const maxDuration = 60;
 const FEW = 5;
 const ORDINAL = ['הראשון', 'השני', 'השלישי', 'הרביעי', 'החמישי'];
 
-/** מספר הסבב הפעיל, לפי כמה משפטי חיפוש כבר נאמרו בשיחה. */
-function roundOf(params: Record<string, string>): number {
-  let n = 0;
-  while (params[`q${n}`] !== undefined) n += 1;
-  return n;
-}
-
-/** הקראת רשימת שיעורים. כל שיעור הוא הודעה בפני עצמה, עם נשימה לפניו. */
-function readOut(rows: Awaited<ReturnType<typeof upcomingFor>>) {
-  return say(...rows.map((row, i) => {
-    const label = ORDINAL[i] ? `שיעור ${ORDINAL[i]}` : 'ועוד שיעור';
-    return `${label} | ${describeLesson(row)}`;
-  }));
-}
-
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const client = publicClient();
+  const c = await loadCopy(client);
 
-  const rounds = roundOf(params);
+  /** הקראת רשימה. כל שיעור הוא הודעה בפני עצמה, עם נשימה לפניו. */
+  const readOut = (rows: Awaited<ReturnType<typeof upcomingFor>>) => say(
+    ...rows.map((row, i) => {
+      const label = ORDINAL[i]
+        ? c('search.lesson', { ordinal: ORDINAL[i] })
+        : c('search.lessonMore');
+      return `${label} | ${describeLesson(row)}`;
+    }),
+  );
+
+  const rounds = roundOf(params, 'q');
   const r = Math.max(0, rounds - 1);
   const spoken = (params[`q${r}`] || '').trim();
 
@@ -74,19 +72,27 @@ async function handle(request: Request) {
   if (!rounds || params[`again${r}`] === '1') {
     const next = params[`again${r}`] === '1' ? rounds : 0;
     return respond(
-      next === 0
-        ? say('כאן תמצאו כל שיעור תורה ברחבי הארץ', 'פשוט אמרו לי מה אתם מחפשים')
-        : say('בבקשה'),
-      read(
-        'אפשר לומר את שם הרב, את שם העיר, או את נושא השיעור',
-        `q${next}`,
-        { mode: 'voice', silence: 3, seconds: 20 },
-      ),
+      next === 0 ? say(c('search.intro.1'), c('search.intro.2')) : say(c('search.again.ask')),
+      read(c('search.ask'), `q${next}`, { mode: 'voice', silence: 3, seconds: 20 }),
     );
   }
 
-  if (params[`again${r}`] === '2') {
-    return respond(say('תודה שהתקשרתם לאיגוד השיעורים', 'שיהיה לימוד פורה'), hangup());
+  if (params[`again${r}`] === '2' || isHome(params[`again${r}`])) {
+    if (isHome(params[`again${r}`])) return respond(say(c('nav.back')), goHome());
+    return farewell(c);
+  }
+
+  /* ---------- שמירת שיעור לאזור האישי ---------- */
+  if (params[`save${r}`]) {
+    const saveId = String(params[`save${r}`]);
+    const { data: res } = await client.rpc('igud_ivr_save_lesson', {
+      p_phone: params.ApiPhone || '', p_lesson: saveId,
+    });
+    const ok = (res as { success?: boolean } | null)?.success !== false;
+    return respond(
+      say(ok ? c('personal.saved') : c('nav.error')),
+      read(c('search.closing'), `again${r}`, { min: 1, max: 1 }),
+    );
   }
 
   /* ---------- מה ביקשו ---------- */
@@ -102,7 +108,7 @@ async function handle(request: Request) {
 
   const filter = { city: narrowed.city, topic: narrowed.topic, teacher: narrowed.teacher };
   const total = await countFor(client, filter);
-  const closing = 'לחיפוש נוסף הקישו 1. לסיום הקישו 2';
+  const closing = c('search.closing');
 
   /* ---------- לא נמצא דבר ---------- */
   if (!total) {
@@ -111,11 +117,8 @@ async function handle(request: Request) {
     if (fallback.length) {
       await logRequest(client, { ...meta, spoken, intent, count: fallback.length, resolved: true });
       return respond(
-        say('לא מצאנו התאמה מדויקת', 'אבל אלה שיעורים שאולי יתאימו לכם'),
-        say(...fallback.map((row, i) => {
-          const label = ORDINAL[i] ? `שיעור ${ORDINAL[i]}` : 'ועוד שיעור';
-          return `${label} | ${describeLesson(row as never)}`;
-        })),
+        say(c('search.partial.1'), c('search.partial.2')),
+        readOut(fallback as never),
         read(closing, `again${r}`, { min: 1, max: 1 }),
       );
     }
@@ -123,37 +126,25 @@ async function handle(request: Request) {
     await logRequest(client, { ...meta, spoken, intent, count: 0, resolved: false });
 
     if (params[`retry${r}`] === '2') {
-      return respond(
-        say(
-          'רשמנו את הבקשה שלכם',
-          'אם השיעור הזה ייפתח או ייכנס למאגר, נדאג לעדכן אתכם',
-          'תודה שעזרתם לנו להשלים את התמונה',
-        ),
-        hangup(),
-      );
+      return farewell(c, c('search.noted.1'), c('search.noted.2'), c('search.noted.3'));
     }
     return respond(
-      say(
-        'חיפשנו, ולא מצאנו שיעור שמתאים למה שביקשתם',
-        'יכול להיות שהוא עדיין לא במאגר',
-      ),
-      read(
-        'לנסות חיפוש אחר הקישו 1. להשאיר לנו הודעה ונחזור אליכם הקישו 2',
-        `retry${r}`,
-        { min: 1, max: 1 },
-      ),
+      say(c('search.none.1'), c('search.none.2')),
+      read(c('search.none.menu'), `retry${r}`, { min: 1, max: 1 }),
     );
   }
 
   const heading = describeIntent(narrowed);
-  const found = total === 1 ? 'נמצא שיעור אחד' : `נמצאו ${total} שיעורים`;
+  const found = total === 1
+    ? c('search.foundOne', { heading })
+    : c('search.found', { count: total, heading });
 
   /* ---------- מעט תוצאות: מקריאים מיד ---------- */
   if (total <= FEW) {
     const rows = await upcomingFor(client, filter, FEW);
     await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: true });
     return respond(
-      say(`${found} ${heading}`.trim()),
+      say(found),
       readOut(rows),
       read(closing, `again${r}`, { min: 1, max: 1 }),
     );
@@ -166,7 +157,7 @@ async function handle(request: Request) {
     const rows = await upcomingFor(client, filter, FEW);
     await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: true });
     return respond(
-      say('אלה הקרובים ביותר'),
+      say(c('search.nearest')),
       readOut(rows),
       read(closing, `again${r}`, { min: 1, max: 1 }),
     );
@@ -177,7 +168,7 @@ async function handle(request: Request) {
     if (!cities.length) {
       const rows = await upcomingFor(client, filter, FEW);
       return respond(
-        say('כל השיעורים האלה באותו אזור', 'אז הנה הם'),
+        say(c('search.oneArea.1'), c('search.oneArea.2')),
         readOut(rows),
         read(closing, `again${r}`, { min: 1, max: 1 }),
       );
@@ -185,7 +176,7 @@ async function handle(request: Request) {
     const choice = pagedChoice(params, cityPrefix, cities);
     if ('askText' in choice) {
       return respond(
-        say('באיזו עיר תרצו לשמוע'),
+        say(c('search.cityAsk')),
         read(choice.askText, choice.varName, { min: 1, max: 1 }),
       );
     }
@@ -194,12 +185,8 @@ async function handle(request: Request) {
   await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: false });
 
   return respond(
-    say(`${found} ${heading}`.trim()),
-    read(
-      'לשמיעת השיעורים הקרובים הקישו 1. לצמצום לפי עיר הקישו 2',
-      `pick${r}`,
-      { min: 1, max: 1 },
-    ),
+    say(found),
+    read(c('search.manyMenu'), `pick${r}`, { min: 1, max: 1 }),
   );
 }
 

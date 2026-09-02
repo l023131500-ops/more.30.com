@@ -1,6 +1,37 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { hangup, read, respond, say } from '@/lib/yemot';
 import { logRequest } from '@/lib/ivr-ai';
+import { copyDefaults, type Copy } from '@/lib/ivr-copy';
+
+/* ============================================================
+   ניווט: יציאה, חזרה, ופרידה
+   ============================================================ */
+
+/**
+ * כוכבית לחזרה, אפס לתפריט הראשי.
+ *
+ * ימות מחזירה בכל פנייה את כל המשתנים שכבר נקראו, ואי אפשר למחוק
+ * אותם. לכן "חזרה" אינה מחיקה של הבחירה האחרונה אלא פתיחת סבב חדש:
+ * לכל סבב מספר משלו, וכל המשתנים שלו נושאים אותו. זו הדרך היחידה
+ * שבה חזרה באמת מנקה את המסך במקום למצוא את הבחירה הקודמת.
+ */
+export const isBack = (value?: string) => String(value || '').trim() === '*';
+export const isHome = (value?: string) => String(value || '').trim() === '0';
+
+/** מספר הסבב הפעיל, לפי כמה סבבים כבר נסגרו בשיחה. */
+export function roundOf(params: Record<string, string>, marker: string): number {
+  let n = 0;
+  while (params[`${marker}${n}`] !== undefined) n += 1;
+  return n;
+}
+
+/** הפרידה, זהה בכל השלוחות. */
+export function farewell(c: Copy, ...before: string[]) {
+  return respond(
+    say(...before, c('nav.blessing'), c('nav.bye')),
+    hangup(),
+  );
+}
 
 /**
  * שני המסלולים שחוזרים בכל שלוחת הצטרפות.
@@ -11,15 +42,11 @@ import { logRequest } from '@/lib/ivr-ai';
  * ולכן אין כאן מסלול "נחות". ההבדל הוא רק בכמה מהמידע הגיע מובנה.
  */
 
-export const MODE_PROMPT =
-  'למילוי הפרטים שאלה אחר שאלה הקישו 1. לספר לנו במילים שלכם הקישו 2';
-
 /** שאלת הפתיחה: טופס מונחה או הודעה חופשית. */
-export function askMode(title: string, subtitle?: string) {
+export function askMode(c: Copy, ...intro: string[]) {
   return respond(
-    say(title),
-    subtitle ? say(subtitle) : '',
-    read(MODE_PROMPT, 'mode', { min: 1, max: 1 }),
+    say(...intro),
+    read(c('mode.prompt'), 'mode', { min: 1, max: 1 }),
   );
 }
 
@@ -37,6 +64,8 @@ export async function freeMessage(
     requestKind: string;
     phone: string;
     invite: string;
+    /** הנוסחים. בלעדיהם משתמשים בברירות המחדל */
+    copy?: Copy;
   },
 ): Promise<Response | null> {
   if (params.mode !== '2') return null;
@@ -67,16 +96,11 @@ export async function freeMessage(
     resolved: !error,
   });
 
+  const c = opts.copy || copyDefaults;
+
   if (error) {
-    return respond(
-      say('משהו השתבש בשמירת ההודעה', 'נשמח אם תנסו שוב בעוד כמה דקות'),
-      hangup(),
-    );
+    return respond(say(c('nav.error'), c('nav.retry'), c('nav.bye')), hangup());
   }
 
-  return respond(
-    say('ההודעה נקלטה, תודה רבה'),
-    say('נאזין לה ונחזור אליכם בהקדם'),
-    hangup(),
-  );
+  return farewell(c, c('free.saved.1'), c('free.saved.2'));
 }
