@@ -30,19 +30,18 @@ export async function POST(request: Request) {
     await getSession(config);
 
     const origin = new URL(request.url).origin || SITE.url;
+    // מבנה שטוח כשאין שלוחת בסיס: התפריט יושב בשורש והשלוחות תחתיו
     const root = config.rootExt;
+    const at = (ext: string) => (root ? `ivr2:/${root}/${ext}/ext.ini` : `ivr2:/${ext}/ext.ini`);
+    const rootPath = root ? `ivr2:/${root}/ext.ini` : 'ivr2:/ext.ini';
 
     // התפריט נכתב מהנוסחים שבניהול, ולכן שינוי טקסט שם מגיע לימות בלחיצה
     const copy = await loadCopy(client);
-    await uploadTextFile(config, `ivr2:/${root}/ext.ini`, rootMenuIni(copy));
+    await uploadTextFile(config, rootPath, rootMenuIni(copy));
 
     let created = 1;
     for (const plan of EXTENSIONS) {
-      await uploadTextFile(
-        config,
-        `ivr2:/${root}/${plan.ext}/ext.ini`,
-        apiExtensionIni(origin, plan),
-      );
+      await uploadTextFile(config, at(plan.ext), apiExtensionIni(origin, plan));
       created += 1;
     }
 

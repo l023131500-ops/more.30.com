@@ -312,7 +312,8 @@ export async function yemotConfig(client: SupabaseClient): Promise<YemotConfig |
     system: value.system,
     apiKey: value.apiKey || undefined,
     password: value.password || undefined,
-    rootExt: value.rootExt || '1',
+    // מחרוזת ריקה פירושה מבנה שטוח: השלוחות יושבות ישירות תחת השורש
+    rootExt: value.rootExt === undefined ? '1' : String(value.rootExt).replace(/^\/+|\/+$/g, ''),
   };
 }
 
@@ -327,10 +328,21 @@ function token(config: YemotConfig): string {
  * זו ההגנה שמונעת פגיעה בשלוחות אחרות במערכת של הלקוח.
  */
 export function assertInRoot(path: string, rootExt: string): string {
+  if (path.includes('..')) throw new Error(`חסימת בטיחות: נתיב לא תקין ${path}`);
+
+  if (!rootExt) {
+    // מבנה שטוח: התפריט בשורש, והשלוחות 1 ומעלה ישירות תחתיו. השומר
+    // עדיין חוסם את שלוחה 0, שהיא הכניסה למערכת ואינה שלנו
+    if (path === 'ivr2:/ext.ini') return path;
+    if (!/^ivr2:\/([1-9]\d*)(\/|$)/.test(path)) {
+      throw new Error(`חסימת בטיחות: ניסיון לכתוב אל ${path}, שאינו שלוחה מספרית`);
+    }
+    return path;
+  }
+
   if (!new RegExp(`^ivr2:/${rootExt}(/|$)`).test(path)) {
     throw new Error(`חסימת בטיחות: ניסיון לכתוב אל ${path} מחוץ לשלוחה ${rootExt}`);
   }
-  if (path.includes('..')) throw new Error(`חסימת בטיחות: נתיב לא תקין ${path}`);
   return path;
 }
 

@@ -16,6 +16,10 @@ const DEFAULTS: Settings = {
   yemot: { system: '', apiKey: '', password: '', rootExt: '1', enabled: 'false' },
   nedarim: { mosadId: '', apiPassword: '', apiValid: '', callbackSecret: '', forms: {} },
   ai: { apiKey: '', model: 'claude-opus-5' },
+  yemotPay: {
+    enabled: 'false', provider: '', shop: '', terminal: '',
+    userName: '', password: '', currency: '1', maxPayments: '', minAmount: '10',
+  },
 };
 
 /** קריאת שדה טקסט מתוך קבוצת הגדרות, בלי להניח על הטיפוס. */
@@ -269,6 +273,76 @@ export default function SettingsAdmin() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Row label="מפתח API" value={text(settings.ai, 'apiKey')} onChange={(v) => set('ai', 'apiKey', v)} secret />
           <Row label="דגם" value={text(settings.ai, 'model')} onChange={(v) => set('ai', 'model', v)} />
+        </div>
+      </Panel>
+
+      <Panel
+        title="סליקה טלפונית בשלוחה 5"
+        description="הערכים נמסרים לימות המשיח, והיא מדברת עם הסולק. הם אינם בקוד, ולכן אפשר להחליף בלי פריסה."
+        actions={
+          <button type="button" onClick={() => save('yemotPay', true)} disabled={busy} className="btn btn-primary !py-2 !text-[0.82rem]">
+            שמירה
+          </button>
+        }
+      >
+        <p className="mb-4 rounded-xl border border-royal-300 bg-royal-50 px-4 py-3 text-[0.82rem] leading-relaxed text-royal-700">
+          כל עוד <strong>הפעלה</strong> אינה true, שלוחה 5 אומרת שהתרומה בטלפון אינה זמינה
+          ומציעה להשאיר פרטים או לשמוע מספר טלפון. זה מכוון: פרמטר שגוי בסליקה אינו תקלה
+          שמתגלה בבדיקה אלא תרומה שנכשלת, או כזו שנגבית ואינה מגיעה ליעדה.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Row
+            label="הפעלה"
+            value={text(settings.yemotPay, 'enabled')}
+            onChange={(v) => set('yemotPay', 'enabled', v)}
+            hint="true להפעלה. כל ערך אחר משאיר את השלוחה במצב הבטוח"
+          />
+          <Row
+            label="שם הסולק"
+            value={text(settings.yemotPay, 'provider')}
+            onChange={(v) => set('yemotPay', 'provider', v)}
+            hint="כפי שימות מכירה אותו, למשל nedarim או tranzila. הערך המדויק נמצא במסך הסליקה של ימות"
+          />
+          <Row
+            label="מספר חנות או פרויקט"
+            value={text(settings.yemotPay, 'shop')}
+            onChange={(v) => set('yemotPay', 'shop', v)}
+            hint="אצל חלק מהסולקים זהו שדה חובה"
+          />
+          <Row
+            label="מספר טרמינל"
+            value={text(settings.yemotPay, 'terminal')}
+            onChange={(v) => set('yemotPay', 'terminal', v)}
+          />
+          <Row
+            label="שם משתמש אצל הסולק"
+            value={text(settings.yemotPay, 'userName')}
+            onChange={(v) => set('yemotPay', 'userName', v)}
+          />
+          <Row
+            label="סיסמה אצל הסולק"
+            value={text(settings.yemotPay, 'password')}
+            onChange={(v) => set('yemotPay', 'password', v)}
+            secret
+          />
+          <Row
+            label="מטבע"
+            value={text(settings.yemotPay, 'currency')}
+            onChange={(v) => set('yemotPay', 'currency', v)}
+            hint="1 שקל, 2 דולר"
+          />
+          <Row
+            label="מספר תשלומים"
+            value={text(settings.yemotPay, 'maxPayments')}
+            onChange={(v) => set('yemotPay', 'maxPayments', v)}
+            hint="ריק פירושו שהתורם בוחר בעצמו"
+          />
+          <Row
+            label="סכום מזערי"
+            value={text(settings.yemotPay, 'minAmount')}
+            onChange={(v) => set('yemotPay', 'minAmount', v)}
+            hint="סכום נמוך ממנו נדחה לפני שהשיחה מגיעה לסולק"
+          />
         </div>
       </Panel>
 
