@@ -27,26 +27,50 @@ const SITE = process.env.IGUD_SITE || 'https://igud-hashiurim.vercel.app';
 const ROOT = '1';
 
 const EXTENSIONS = [
-  { ext: '1', title: 'חיפוש שיעור', path: '/api/yemot/search' },
-  { ext: '2', title: 'עדכון שיעור קיים', path: '/api/yemot/update' },
-  { ext: '3', title: 'הצטרפות כמגיד שיעור', path: '/api/yemot/maggid' },
-  { ext: '4', title: 'פתיחת שיעור תורה חדש', path: '/api/yemot/host' },
-  { ext: '5', title: 'שותפות בפעילות', path: '/api/yemot/partner' },
-  { ext: '6', title: 'מענה אנושי והשארת הודעה', path: '/api/yemot/contact' },
+  { ext: '1', title: 'לחיפוש שיעור', path: '/api/yemot/search' },
+  { ext: '2', title: 'לעדכון שיעור שכבר במאגר', path: '/api/yemot/update' },
+  { ext: '3', title: 'להצטרף כמגיד שיעור', path: '/api/yemot/maggid' },
+  { ext: '4', title: 'לפתוח שיעור חדש', path: '/api/yemot/host' },
+  { ext: '5', title: 'להיות שותפים', path: '/api/yemot/partner' },
+  { ext: '6', title: 'לדבר עם נציג', path: '/api/yemot/contact' },
 ];
 
-const rootMenu = () => [
-  'type=menu',
-  'timeout=10',
-  'enter_id_list_message=t-ברוכים הבאים לאיגוד השיעורים, מחברים בין לומדים ומלמדים. '
-  + EXTENSIONS.map((e) => `ל${e.title} הקישו ${e.ext}`).join('. ') + '.',
-  'first_time_playing=yes',
-].join('\n');
+/*
+ * בפרוטוקול של ימות המשיח הנקודה מפרידה בין הודעה להודעה, ואינה סימן
+ * פיסוק. לכן כל שורה כאן היא הודעה בפני עצמה שמתחילה ב-t, ולא משפט
+ * ארוך אחד. זה גם מה שהפרוטוקול דורש וגם מה שנשמע נכון.
+ */
+const rootMenu = () => {
+  const lines = [
+    'ברוכים הבאים לאיגוד השיעורים',
+    'הבית של שיעורי התורה בארץ ישראל',
+    'לאיזה שירות תרצו להגיע',
+    ...EXTENSIONS.map((e) => `${e.title} הקישו ${e.ext}`),
+  ];
+  return [
+    'type=menu',
+    'timeout=10',
+    `enter_id_list_message=${lines.map((line) => `t-${line}`).join('.')}`,
+    'first_time_playing=yes',
+  ].join('\n');
+};
 
+/*
+ * api_link הוא השם שבתיעוד הרשמי, api_url מופיע בדוגמאות רבות ברשת,
+ * ושניהם נכתבים כאן: שדה שאינו מוכר נעלם בשקט, ואילו שדה חסר מפיל את
+ * השלוחה כולה בהודעה "לא מוגדר לינק".
+ *
+ * POST ולא GET, כי המתקשר מדבר: משפט מתומלל בעברית בשורת כתובת נחתך
+ * ומתעוות. הודעת הניתוק מופעלת בכוונה, כי חיפוש שננטש הוא בדיוק המידע
+ * שכדאי לאסוף, והשרת יודע להבחין בה.
+ */
 const apiExt = (e) => [
   'type=api',
+  `api_link=${SITE}${e.path}`,
   `api_url=${SITE}${e.path}`,
-  'api_url_post_data=ApiCallId,ApiPhone,ApiExtension,ApiDID,ApiEnterID',
+  'api_url_post=yes',
+  'api_hangup_send=yes',
+  'api_wait_answer_music_on_hold=yes',
   'api_max_call_length=600',
 ].join('\n');
 
@@ -136,7 +160,7 @@ async function main() {
     } catch (err) {
       die(`אין גישה אל ${url} — ${err.message}`);
     }
-    if (!text.startsWith('id_list_message=') && !text.startsWith('read=')) {
+    if (!/^(id_list_message|read|go_to_folder|noop)=/.test(text)) {
       die(`${url} אינו מחזיר YemotML. התקבל: ${text.slice(0, 120)}`);
     }
     console.log(`  ${c.ok('תקין')}  ${e.path}`);
@@ -183,7 +207,7 @@ async function main() {
 
   console.log(c.b('\nהסתיים.\n'));
   console.log('בדיקות קבלה, בשיחה לקו:');
-  console.log('  1. נשמע תפריט ראשי עם שש אפשרויות');
+  console.log('  1. נשמע תפריט ראשי עם שש אפשרויות, ובפתיח "הבית של שיעורי התורה"');
   console.log('  2. הקשה 1 ואמירת "דף יומי בבני ברק" — נשמע מספר התוצאות');
   console.log('  3. הקשה 1 ואמירת ג\'יבריש — נשמעת הודעת "לא הצליחה למצוא"');
   console.log('  4. הקשה 3 — הבחירה בין מילוי מדויק להשארת הודעה');

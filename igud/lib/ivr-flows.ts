@@ -12,7 +12,7 @@ import { logRequest } from '@/lib/ivr-ai';
  */
 
 export const MODE_PROMPT =
-  'למילוי הפרטים בצורה מדויקת הקישו 1. להשארת הודעה למערכת בשפה שלכם הקישו 2';
+  'למילוי הפרטים שאלה אחר שאלה הקישו 1. לספר לנו במילים שלכם הקישו 2';
 
 /** שאלת הפתיחה: טופס מונחה או הודעה חופשית. */
 export function askMode(title: string, subtitle?: string) {
@@ -43,7 +43,7 @@ export async function freeMessage(
 
   const spoken = (params.msg || '').trim();
   if (!spoken) {
-    return respond(read(opts.invite, 'msg', { mode: 'voice', max: 120, wait: 12 }));
+    return respond(read(opts.invite, 'msg', { mode: 'voice', silence: 4, seconds: 60 }));
   }
 
   const { error } = await client.rpc('igud_submit_request', {
@@ -69,14 +69,14 @@ export async function freeMessage(
 
   if (error) {
     return respond(
-      say('אירעה תקלה בשמירת ההודעה. נא לנסות שוב מאוחר יותר'),
+      say('משהו השתבש בשמירת ההודעה', 'נשמח אם תנסו שוב בעוד כמה דקות'),
       hangup(),
     );
   }
 
   return respond(
-    say('ההודעה נקלטה. תודה רבה'),
-    say('נציג מהאיגוד יאזין לה ויחזור אליכם בהקדם'),
+    say('ההודעה נקלטה, תודה רבה'),
+    say('נאזין לה ונחזור אליכם בהקדם'),
     hangup(),
   );
 }

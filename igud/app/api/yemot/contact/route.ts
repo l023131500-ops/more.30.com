@@ -1,5 +1,5 @@
 import { publicClient } from '@/lib/supabase';
-import { goHome, read, respond, say, yemotParams } from '@/lib/yemot';
+import { goHome, isHangup, noop, read, respond, say, sayDigits, yemotParams } from '@/lib/yemot';
 import { freeMessage } from '@/lib/ivr-flows';
 import { SITE } from '@/lib/site';
 
@@ -20,34 +20,38 @@ async function handle(request: Request) {
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (isHangup(params)) return respond(noop('המתקשר ניתק'));
+
   if (!params.mode) {
     return respond(
-      say('מענה אנושי והשארת הודעה'),
+      say('הגעתם למענה האנושי של האיגוד', 'כאן אפשר לשאול כל דבר'),
       read(
-        'להשארת הודעה למערכת הקישו 2. לשמיעת מספר הטלפון של המשרד הקישו 1',
+        'להשאיר הודעה ונחזור אליכם הקישו 1. לשמוע את מספר הטלפון של המשרד הקישו 2',
         'mode',
         { min: 1, max: 1 },
       ),
     );
   }
 
-  if (params.mode === '1') {
+  if (params.mode === '2') {
     return respond(
-      say(`מספר הטלפון של משרדי האיגוד הוא ${SITE.voiceLine.split('').join(' ')}`),
-      say('אפשר גם להשאיר הודעה, ונחזור אליכם'),
+      say('מספר הטלפון של משרדי האיגוד'),
+      sayDigits(SITE.voiceLine),
+      say('אפשר גם להשאיר כאן הודעה, ונחזור אליכם'),
       goHome(),
     );
   }
 
-  const free = await freeMessage(client, params, {
+  // מסלול ההודעה משתמש באותו קוד של שאר השלוחות, שם 2 הוא ההודעה
+  const free = await freeMessage(client, { ...params, mode: '2' }, {
     kind: 'human',
     requestKind: 'open_lesson',
     phone,
-    invite: 'אמרו את ההודעה שלכם אחרי הצפצוף, ונציג יחזור אליכם',
+    invite: 'ספרו לנו במה נוכל לעזור, ונחזור אליכם',
   });
   if (free) return free;
 
-  return respond(say('לא זוהתה בחירה'), goHome());
+  return respond(say('לא זיהינו את הבחירה', 'נחזור לתפריט'), goHome());
 }
 
 export const GET = handle;

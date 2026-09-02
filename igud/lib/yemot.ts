@@ -7,55 +7,136 @@ import type { SupabaseClient } from '@supabase/supabase-js';
  *   1. בניית תשובות לשלוחת API (YemotML) — מה שהמערכת משמיעה למתקשר.
  *   2. לקוח ה-API של ימות, לבניית השלוחות והעלאת קבצי ext.ini.
  *
- * הפרמטרים של הפקודה read שונים מעט בין גרסאות. ברירות המחדל כאן
- * מתאימות לגרסה הנפוצה, וניתן לשנות אותן דרך האובייקט ReadOptions.
+ * הפרוטוקול כאן נכתב לפי התיעוד הרשמי של מודול ה-API, ושלושה כללים בו
+ * אינם אינטואיטיביים אבל קובעים הכל:
+ *
+ *   הנקודה היא מפריד בין הודעות, לא סימן פיסוק. "שלום. עולם" אינו משפט
+ *   אחד אלא שתי הודעות, והשנייה חייבת לפתוח בסוג ההשמעה. טקסט שיש בו
+ *   נקודה חופשית שובר את התשובה כולה, והמתקשר שומע "אין מענה משרת".
+ *
+ *   הקו המפריד מפריד בין סוג ההשמעה לתוכן. t-שלום הוא הקראת "שלום".
+ *   מקף בתוך הטקסט נקרא כמפריד נוסף ומקלקל אותו.
+ *
+ *   סדר הפרמטרים ב-read אינו חופשי, והוא שונה מהאינטואיציה: השם, האם
+ *   להשתמש בערך קיים, ורק אחר כך המקסימום ואז המינימום.
+ *
+ * שלושת הכללים האלה מטופלים כאן, במקום אחד, כדי ששאר הקוד יוכל לכתוב
+ * עברית רגילה בלי לחשוב על התחביר.
  */
 
 /* ============================================================
    1. בניית תשובות לשלוחת API
    ============================================================ */
 
-/** ניקוי טקסט להקראה: התווים = ו-& הם מפרידים בפרוטוקול. */
+/**
+ * ניקוי טקסט להקראה.
+ *
+ * ארבעה תווים מוסרים כי לכולם יש משמעות תחבירית בפרוטוקול:
+ * = מפריד בין פקודה לערך, & בין פקודה לפקודה, . בין הודעה להודעה,
+ * ו--- בין סוג ההשמעה לתוכן.
+ */
 export function speakable(text: string): string {
   return String(text || '')
     .replace(/[=&]/g, ' ')
-    .replace(/["']/g, '')
+    .replace(/[.\-–—]/g, ' ')
+    .replace(/["'׳״]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-/** הודעה מוקראת. */
-export function say(...parts: string[]): string {
-  return `id_list_message=t-${speakable(parts.filter(Boolean).join('. '))}`;
+/**
+ * פירוק טקסט לרצף הודעות.
+ *
+ * במקום להסיר את הנקודות ולקבל משפט אחד ארוך שנקרא ברצף, כל משפט הופך
+ * להודעה בפני עצמה. זה גם מה שהפרוטוקול דורש וגם מה שנשמע נכון: בין
+ * הודעה להודעה יש נשימה, ומתקשר ששומע תפריט צריך אותה.
+ */
+function segments(...parts: (string | undefined | null)[]): string[] {
+  return parts
+    .filter(Boolean)
+    .flatMap((part) => String(part).split(/\.\s+|\s\|\s/))
+    .map(speakable)
+    .filter(Boolean)
+    .map((line) => `t-${line}`);
+}
+
+/** הודעה מוקראת. כל משפט הופך להודעה נפרדת ברצף. */
+export function say(...parts: (string | undefined | null)[]): string {
+  const list = segments(...parts);
+  return list.length ? `id_list_message=${list.join('.')}` : '';
 }
 
 export interface ReadOptions {
-  /** מספר ניסיונות לפני מעבר לשגיאה */
-  attempts?: number;
-  /** מספר ספרות מזערי */
-  min?: number;
+  /** number לספרות, voice לזיהוי דיבור, record להקלטה השמורה במערכת */
+  mode?: 'number' | 'voice' | 'record';
   /** מספר ספרות מרבי */
   max?: number;
-  /** שניות המתנה */
+  /** מספר ספרות מזערי */
+  min?: number;
+  /** שניות המתנה להקשה */
   wait?: number;
-  /** number לספרות, voice להקלטה, record להקלטת קול */
-  mode?: 'number' | 'voice' | 'record';
-  /** האם לאפשר ריק */
+  /** צורת ההשמעה של מה שהוקש חזרה למתקשר */
+  echo?: 'No' | 'Number' | 'Digits' | 'Phone' | 'TeudatZehut' | 'Time' | 'Date';
+  /** האם לבקש אישור על ההקשה. ברירת המחדל היא לא לבקש */
+  confirm?: boolean;
+  /** האם לאפשר מעבר בלי הקשה */
   allowEmpty?: boolean;
+  /** שניות שקט שמסיימות דיבור */
+  silence?: number;
+  /** שניות מרביות לדיבור */
+  seconds?: number;
 }
 
 /**
  * בקשת קלט מהמתקשר. הערך חוזר בקריאה הבאה כפרמטר בשם varName.
  *
- * סדר הפרמטרים: attempts, min, max, wait, mode, confirm, blockAsterisk,
- * blockZero, replaceChar, digitsAllowed, allowEmpty
+ * המבנה הוא read=הודעה=מפרט הקלט, ומפרט הקלט תלוי בסוג:
+ *
+ *   הקשה  שם, שימוש בקיים, מקסימום, מינימום, המתנה, השמעה חוזרת,
+ *         חסימת כוכבית, חסימת אפס, החלפת תו, מקשים מותרים, חזרות,
+ *         מעבר על ריק, טקסט לריק, נעילת מקלדת, בקשת אישור
+ *   דיבור שם, שימוש בקיים, voice, שפה, לאפשר הקשה, מקסימום ספרות,
+ *         מנוע, שניות שקט לסיום, שניות מרביות
+ *
+ * המקסימום קודם למינימום. זה נראה הפוך, וזה מה שהתיעוד אומר.
  */
 export function read(text: string, varName: string, options: ReadOptions = {}): string {
   const {
-    attempts = 3, min = 1, max = 10, wait = 7, mode = 'number', allowEmpty = false,
+    mode = 'number', max = 10, min = 1, wait = 7,
+    echo = 'No', confirm = false, allowEmpty = false,
+    silence = 3, seconds = 20,
   } = options;
-  const params = [attempts, min, max, wait, mode, 'no', 'no', 'no', '', '', allowEmpty ? 'yes' : 'no'];
-  return `read=t-${speakable(text)}=${varName},${params.join(',')}`;
+
+  const prompt = segments(text).join('.');
+
+  if (mode === 'voice') {
+    // המנוע של ההקלטות, ולא של התפריט: הוא מאפשר משפט שלם ולא מילה
+    return `read=${prompt}=${varName},,voice,,,,record,${silence},${seconds}`;
+  }
+
+  if (mode === 'record') {
+    return `read=${prompt}=${varName},,record,,,no,yes,,2,${seconds}`;
+  }
+
+  const spec = [
+    varName, '', max, min, wait, echo,
+    'no', 'no', '', '',
+    '', allowEmpty ? 'Ok' : '', '', '',
+    confirm ? '' : 'no',
+  ];
+  return `read=${prompt}=${spec.join(',')}`;
+}
+
+/**
+ * הקראת מספר ספרה אחר ספרה.
+ *
+ * הפרוטוקול יודע לעשות את זה בעצמו בסוג ההשמעה d, וזה עדיף על פיזור
+ * רווחים בין הספרות בטקסט: ההקראה יוצאת נכונה, ומספר לא ייקרא בטעות
+ * כמיליונים.
+ */
+export function sayDigits(value: string): string {
+  const clean = String(value || '').replace(/\D/g, '');
+  return clean ? `id_list_message=d-${clean}` : '';
 }
 
 /** מעבר לשלוחה אחרת. */
@@ -69,9 +150,66 @@ export const hangup = () => goToFolder('hangup');
 /** חזרה לשלוחת הבסיס. */
 export const goHome = () => goToFolder('/');
 
-/** איחוד פקודות לתשובה אחת. */
-export function respond(...commands: string[]): Response {
-  return new Response(commands.filter(Boolean).join('&'), {
+/** הערה ליומן, בלי השפעה על השיחה. משמשת כתשובה תקינה שאינה עושה דבר. */
+export const noop = (note = 'ok') => `noop=${speakable(note)}`;
+
+/** האם הפנייה הזו היא הודעה על ניתוק, ולא שלב בשיחה. */
+export function isHangup(params: Record<string, string>): boolean {
+  return String(params.hangup || '').toLowerCase() === 'yes';
+}
+
+/**
+ * איחוד פקודות לתשובה אחת.
+ *
+ * שתי התאמות לפרוטוקול נעשות כאן, כדי שהקוד הקורא יוכל לכתוב שורות
+ * נפרדות וקריאות:
+ *
+ *   הודעות רצופות מתאחדות לפקודה אחת. שתי פקודות id_list_message
+ *   נפרדות אינן חוקיות, והשנייה הייתה מבטלת את הראשונה.
+ *
+ *   הודעה שלפני בקשת קלט נבלעת לתוכה. זה בדיוק המבנה של read: החלק
+ *   הראשון שלה הוא ההודעה. כך ההודעה נשמעת ומיד אחריה השאלה, בלי
+ *   פקודה מיותרת ובלי סיכון שההודעה תלך לאיבוד.
+ *
+ * פקודה שאחרי read מושמטת. המערכת שולחת את הקלט לשרת ומחכה לתשובה
+ * חדשה, ולכן מעבר שלוחה שנרשם באותה תשובה לא היה מתבצע לעולם — ובמקרה
+ * הרע היה מוציא את המתקשר מהשלוחה במקום לשאול אותו.
+ */
+export function respond(...commands: (string | undefined | null)[]): Response {
+  const out: string[] = [];
+  let stop = false;
+
+  for (const raw of commands) {
+    const command = String(raw || '').trim();
+    if (!command || stop) continue;
+
+    if (command.startsWith('id_list_message=')) {
+      const body = command.slice('id_list_message='.length);
+      const last = out[out.length - 1];
+      if (last && last.startsWith('id_list_message=')) {
+        out[out.length - 1] = `${last}.${body}`;
+      } else {
+        out.push(command);
+      }
+      continue;
+    }
+
+    if (command.startsWith('read=')) {
+      const last = out[out.length - 1];
+      if (last && last.startsWith('id_list_message=')) {
+        const message = last.slice('id_list_message='.length);
+        out[out.length - 1] = `read=${message}.${command.slice('read='.length)}`;
+      } else {
+        out.push(command);
+      }
+      stop = true;
+      continue;
+    }
+
+    out.push(command);
+  }
+
+  return new Response(out.join('&'), {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   });
 }
@@ -196,33 +334,62 @@ export interface ExtensionPlan {
  * ענף של תפריט זה יושב. כך 5 ו-6 מתפנות למה שאין לו מקום אחר.
  */
 export const EXTENSIONS: ExtensionPlan[] = [
-  { ext: '1', title: 'חיפוש שיעור', apiPath: '/api/yemot/search' },
-  { ext: '2', title: 'עדכון שיעור קיים', apiPath: '/api/yemot/update' },
-  { ext: '3', title: 'הצטרפות כמגיד שיעור', apiPath: '/api/yemot/maggid' },
-  { ext: '4', title: 'פתיחת שיעור תורה חדש', apiPath: '/api/yemot/host' },
-  { ext: '5', title: 'שותפות בפעילות', apiPath: '/api/yemot/partner' },
-  { ext: '6', title: 'מענה אנושי והשארת הודעה', apiPath: '/api/yemot/contact' },
+  { ext: '1', title: 'לחיפוש שיעור', apiPath: '/api/yemot/search' },
+  { ext: '2', title: 'לעדכון שיעור שכבר במאגר', apiPath: '/api/yemot/update' },
+  { ext: '3', title: 'להצטרף כמגיד שיעור', apiPath: '/api/yemot/maggid' },
+  { ext: '4', title: 'לפתוח שיעור חדש', apiPath: '/api/yemot/host' },
+  { ext: '5', title: 'להיות שותפים', apiPath: '/api/yemot/partner' },
+  { ext: '6', title: 'לדבר עם נציג', apiPath: '/api/yemot/contact' },
 ];
 
-/** תוכן ext.ini של תפריט הבסיס. */
+/** נוסח הפתיחה של הקו, במקום אחד. */
+export const WELCOME = [
+  'ברוכים הבאים לאיגוד השיעורים',
+  'הבית של שיעורי התורה בארץ ישראל',
+];
+
+/**
+ * תוכן ext.ini של תפריט הבסיס.
+ *
+ * הנקודה מפרידה בין הודעה להודעה, ולכן כל שורה כאן היא הודעה בפני
+ * עצמה ולא סימן פיסוק. כך גם נשמעת נשימה בין הברכה לתפריט.
+ */
 export function rootMenuIni(): string {
-  const options = EXTENSIONS
-    .map((e) => `ל${e.title} הקישו ${e.ext}`)
-    .join('. ');
+  const lines = [
+    ...WELCOME,
+    'לאיזה שירות תרצו להגיע',
+    ...EXTENSIONS.map((e) => `${e.title} הקישו ${e.ext}`),
+  ];
   return [
     'type=menu',
     'timeout=10',
-    `enter_id_list_message=t-ברוכים הבאים לאיגוד השיעורים, מחברים בין לומדים ומלמדים. ${options}.`,
+    `enter_id_list_message=${lines.map((line) => `t-${line}`).join('.')}`,
     'first_time_playing=yes',
   ].join('\n');
 }
 
-/** תוכן ext.ini של שלוחת API. */
+/**
+ * תוכן ext.ini של שלוחת API.
+ *
+ * api_link הוא השם שבתיעוד הרשמי. api_url מופיע בדוגמאות רבות ברשת,
+ * ושתי הגרסאות נכתבות כאן כי שדה שאינו מוכר פשוט נעלם, ואילו שדה חסר
+ * מפיל את השלוחה כולה בהודעה "לא מוגדר לינק".
+ *
+ * השליחה ב-POST ולא ב-GET, כי המתקשר מדבר ולא מקיש: משפט מתומלל בעברית
+ * בשורת כתובת נחתך באורך ומתעוות בקידוד.
+ *
+ * הודעת הניתוק מופעלת בכוונה. חיפוש שננטש באמצע הוא בדיוק המידע ששווה
+ * לאסוף, והשרת יודע להבחין בה ולרשום אותה בלי להמשיך את השיחה.
+ */
 export function apiExtensionIni(origin: string, plan: ExtensionPlan): string {
+  const url = `${origin}${plan.apiPath}`;
   return [
     'type=api',
-    `api_url=${origin}${plan.apiPath}`,
-    'api_url_post_data=ApiCallId,ApiPhone,ApiExtension,ApiDID,ApiEnterID',
+    `api_link=${url}`,
+    `api_url=${url}`,
+    'api_url_post=yes',
+    'api_hangup_send=yes',
+    'api_wait_answer_music_on_hold=yes',
     'api_max_call_length=600',
   ].join('\n');
 }

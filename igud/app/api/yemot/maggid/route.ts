@@ -1,5 +1,5 @@
 import { publicClient } from '@/lib/supabase';
-import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
+import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
 import { askMode, freeMessage } from '@/lib/ivr-flows';
 
@@ -20,10 +20,12 @@ async function handle(request: Request) {
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (isHangup(params)) return respond(noop('המתקשר ניתק'));
+
   if (!params.mode) {
     return askMode(
-      'הצטרפות כמגיד שיעור',
-      'נאסוף כמה פרטים, ונציג מהאיגוד יחזור אליכם להשלמת השאלון',
+      'שמחים שבאתם למסור תורה',
+      'כמה פרטים קצרים, ונציג מהאיגוד יחזור אליכם',
     );
   }
 
@@ -31,7 +33,7 @@ async function handle(request: Request) {
     kind: 'join',
     requestKind: 'maggid',
     phone,
-    invite: 'ספרו בקצרה על עצמכם, באיזה נושא תרצו למסור שיעור ובאיזה אזור',
+    invite: 'ספרו בקצרה על עצמכם. באיזה נושא תרצו למסור, ובאיזה אזור',
   });
   if (free) return free;
 
@@ -39,7 +41,8 @@ async function handle(request: Request) {
   const cityChoice = pagedChoice(params, 'city', cities);
   if ('askText' in cityChoice) {
     return respond(
-      read(`באיזו עיר אתם גרים. ${cityChoice.askText}`, cityChoice.varName, { min: 1, max: 1 }),
+      say('באיזו עיר אתם גרים'),
+      read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
     );
   }
 
@@ -47,12 +50,16 @@ async function handle(request: Request) {
   const topicChoice = pagedChoice(params, 'topic', topics);
   if ('askText' in topicChoice) {
     return respond(
-      read(`באיזה נושא תרצו למסור שיעור. ${topicChoice.askText}`, topicChoice.varName, { min: 1, max: 1 }),
+      say('באיזה נושא תרצו למסור'),
+      read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
     );
   }
 
   if (!params.audience) {
-    return respond(read('למי מתאים לכם למסור. לגברים הקישו 1. לנשים הקישו 2. לשניהם הקישו 3', 'audience', { min: 1, max: 1 }));
+    return respond(
+      say('ולמי מתאים לכם למסור'),
+      read('לגברים הקישו 1. לנשים הקישו 2. לשניהם הקישו 3', 'audience', { min: 1, max: 1 }),
+    );
   }
 
   const city = cityChoice.value;
@@ -72,14 +79,15 @@ async function handle(request: Request) {
   });
   if (error) {
     return respond(
-      say('אירעה תקלה בשמירת הפרטים. נא לנסות שוב מאוחר יותר'),
+      say('משהו השתבש בשמירת הפרטים', 'נשמח אם תנסו שוב בעוד כמה דקות'),
       hangup(),
     );
   }
 
   return respond(
-    say('הפרטים נקלטו. תודה רבה'),
-    say('נציג מהאיגוד יחזור אליכם בהקדם להשלמת הפרטים'),
+    say('הפרטים נקלטו'),
+    say('נציג מהאיגוד יחזור אליכם בימים הקרובים להשלמת השאלון'),
+    say('תודה שבחרתם להרביץ תורה ברבים'),
     hangup(),
   );
 }

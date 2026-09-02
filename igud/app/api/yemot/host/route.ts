@@ -1,5 +1,5 @@
 import { publicClient } from '@/lib/supabase';
-import { hangup, read, respond, say, yemotParams } from '@/lib/yemot';
+import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
 import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
 import { askMode, freeMessage } from '@/lib/ivr-flows';
 
@@ -19,10 +19,12 @@ async function handle(request: Request) {
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (isHangup(params)) return respond(noop('המתקשר ניתק'));
+
   if (!params.mode) {
     return askMode(
-      'פתיחת שיעור תורה חדש',
-      'נאסוף כמה פרטים, וצוות האיגוד יחפש עבורכם מגיד שיעור',
+      'רוצים לפתוח שיעור תורה',
+      'כמה פרטים קצרים, וצוות האיגוד יחפש עבורכם מגיד שיעור',
     );
   }
 
@@ -30,14 +32,15 @@ async function handle(request: Request) {
     kind: 'host',
     requestKind: 'open_lesson',
     phone,
-    invite: 'ספרו איזה שיעור אתם מחפשים, באיזה מקום ובאילו זמנים',
+    invite: 'ספרו איזה שיעור אתם מחפשים. באיזה מקום, ובאילו זמנים',
   });
   if (free) return free;
 
   if (!params.kind) {
     return respond(
+      say('בשביל מי השיעור'),
       read(
-        'עבור בית כנסת הקישו 1. עבור מרכז תורני או ארגון הקישו 2. עבור קבוצת לומדים או חוג בית הקישו 3',
+        'לבית כנסת הקישו 1. למרכז תורני או ארגון הקישו 2. לקבוצת לומדים או חוג בית הקישו 3',
         'kind',
         { min: 1, max: 1 },
       ),
@@ -47,13 +50,19 @@ async function handle(request: Request) {
   const cities = await topCities(client, 40);
   const cityChoice = pagedChoice(params, 'city', cities);
   if ('askText' in cityChoice) {
-    return respond(read(`באיזו עיר. ${cityChoice.askText}`, cityChoice.varName, { min: 1, max: 1 }));
+    return respond(
+      say('באיזו עיר'),
+      read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
+    );
   }
 
   const topics = await topTopics(client, 30);
   const topicChoice = pagedChoice(params, 'topic', topics);
   if ('askText' in topicChoice) {
-    return respond(read(`באיזה נושא תרצו שיעור. ${topicChoice.askText}`, topicChoice.varName, { min: 1, max: 1 }));
+    return respond(
+      say('ובאיזה נושא'),
+      read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
+    );
   }
 
   const city = cityChoice.value;
@@ -73,14 +82,15 @@ async function handle(request: Request) {
   });
   if (error) {
     return respond(
-      say('אירעה תקלה בשמירת הפרטים. נא לנסות שוב מאוחר יותר'),
+      say('משהו השתבש בשמירת הפרטים', 'נשמח אם תנסו שוב בעוד כמה דקות'),
       hangup(),
     );
   }
 
   return respond(
-    say('הבקשה נקלטה. תודה רבה'),
-    say('צוות האיגוד יחפש מגיד שיעור שמתאים לכם, ויחזור אליכם בהקדם'),
+    say('הבקשה נקלטה'),
+    say('צוות האיגוד יחפש מגיד שיעור שמתאים לכם ויחזור אליכם'),
+    say('שיצליח השיעור ויתרבה הלימוד'),
     hangup(),
   );
 }

@@ -1,5 +1,5 @@
 import { publicClient } from '@/lib/supabase';
-import { goHome, read, respond, say, yemotParams } from '@/lib/yemot';
+import { goHome, isHangup, noop, read, respond, say, sayDigits, yemotParams } from '@/lib/yemot';
 import { freeMessage } from '@/lib/ivr-flows';
 import { SITE } from '@/lib/site';
 
@@ -24,12 +24,16 @@ async function handle(request: Request) {
   const phone = digits(params.ApiPhone || params.phone || '');
   const client = publicClient();
 
+  if (isHangup(params)) return respond(noop('המתקשר ניתק'));
+
   if (!params.mode) {
     return respond(
-      say('שותפות בפעילות איגוד השיעורים'),
-      say('האיגוד מרכז את שיעורי התורה ברחבי הארץ ומחבר בין לומדים למלמדים'),
+      say(
+        'איגוד השיעורים הוא הבית של שיעורי התורה בארץ ישראל',
+        'כל שיעור שנפתח כאן, וכל לומד שמצא את מקומו, הם גם שלכם',
+      ),
       read(
-        'להשארת הודעה ולחזרה אליכם הקישו 1. לשמיעת מספר הטלפון הקישו 2',
+        'להשאיר פרטים ונחזור אליכם הקישו 1. לשמוע את מספר הטלפון לתרומות הקישו 2',
         'mode',
         { min: 1, max: 1 },
       ),
@@ -38,7 +42,9 @@ async function handle(request: Request) {
 
   if (params.mode === '2') {
     return respond(
-      say(`מספר הטלפון לתרומות ולשותפות הוא ${SITE.voiceLine.split('').join(' ')}`),
+      say('המספר לתרומות ולשותפות'),
+      sayDigits(SITE.voiceLine),
+      say('תודה, וזכות הרבים תעמוד לכם'),
       goHome(),
     );
   }
@@ -48,11 +54,11 @@ async function handle(request: Request) {
     kind: 'donation',
     requestKind: 'open_lesson',
     phone,
-    invite: 'אמרו את שמכם ובאיזה אופן תרצו לקחת חלק, ונחזור אליכם',
+    invite: 'אמרו את שמכם, ובאיזה אופן תרצו לקחת חלק',
   });
   if (free) return free;
 
-  return respond(say('לא זוהתה בחירה'), goHome());
+  return respond(say('לא זיהינו את הבחירה', 'נחזור לתפריט'), goHome());
 }
 
 export const GET = handle;
