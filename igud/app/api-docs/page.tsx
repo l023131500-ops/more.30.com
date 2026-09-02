@@ -258,7 +258,7 @@ x-igud-secret: <הסוד ממסך הניהול>
         </ol>
 
         <p className="rounded-xl border border-parch-300 bg-parch-50 px-4 py-3 text-[0.85rem] leading-relaxed text-ink-700">
-          נוסח ההודעות אינו נערך בימות המשיח. קובץ ה-<code dir="ltr">ext.ini</code> הוא ארבע
+          נוסח ההודעות אינו נערך בימות המשיח. קובץ ה-<code dir="ltr">ext.ini</code> הוא כמה
           שורות שמצביעות על כתובת כאן, וכל התסריט, התפריטים והחיפוש רצים בשרת. שינוי בטקסט
           שנשמע למתקשר הוא שינוי בקוד, ולא בממשק של ימות.
         </p>
@@ -267,14 +267,24 @@ x-igud-secret: <הסוד ממסך הניהול>
           לבנייה ידנית, זה תוכן ה-<code dir="ltr">ext.ini</code> של שלוחת API:
         </p>
         <Code>{`type=api
+api_link=${base}/api/yemot/search
 api_url=${base}/api/yemot/search
-api_url_post_data=ApiCallId,ApiPhone,ApiExtension,ApiDID,ApiEnterID
+api_url_post=yes
+api_hangup_send=yes
 api_max_call_length=600`}</Code>
 
         <p className="text-[0.88rem] leading-relaxed text-ink-700">
           התשובה שהשרת מחזיר היא טקסט בפרוטוקול של ימות, לדוגמה:
         </p>
-        <Code>{`id_list_message=t-חיפוש שיעור תורה&read=t-לחיפוש לפי עיר הקישו 1=mode,3,1,1,7,number,no,no,no,,,no`}</Code>
+        <Code>{`read=t-כאן תמצאו כל שיעור תורה ברחבי הארץ.t-אמרו מה אתם מחפשים=q0,,voice,,,,record,3,20`}</Code>
+
+        <p className="text-[0.88rem] leading-relaxed text-ink-700">
+          שני פרטים בתחביר הזה אינם אינטואיטיביים ושווים תשומת לב. הנקודה אינה סימן פיסוק
+          אלא מפרידה בין הודעה להודעה, וכל הודעה פותחת בסוג ההשמעה — <code dir="ltr">t-</code>
+          {' '}להקראת טקסט, <code dir="ltr">d-</code> להקראת ספרות. וב-
+          <code dir="ltr">read</code> סדר הפרמטרים הוא שם, שימוש בערך קיים, ורק אחר כך
+          המקסימום ואז המינימום.
+        </p>
 
         <p className="rounded-xl border border-gold-400 bg-gold-50 px-4 py-3 text-[0.85rem] leading-relaxed text-ink-700">
           סדר הפרמטרים של הפקודה <code dir="ltr">read</code> משתנה מעט בין גרסאות של ימות
