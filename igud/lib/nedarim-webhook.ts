@@ -28,9 +28,61 @@ function normalizeLabel(label: string): string {
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v).trim());
 
 /**
+ * המפתחות שנדרים פלוס מוסיפים לכל פנייה, ואינם שדות של הטופס.
+ * הם מוצאים מהספירה שקובעת אם אפשר להתאים לפי מיקום.
+ */
+const SYSTEM_KEYS = new Set([
+  'MosadId', 'TofesId', 'IdFormsSend', 'Emda', 'TransactionId',
+  'MasofId', 'MasofName', 'CreatedDate', 'UpdateDate',
+  'ID', 'Id', 'id', 'RecordId', 'secret', 'key', 'Type',
+]);
+
+/**
+ * מפתחות אנגליים שמשמעותם זהה בכל הטפסים.
+ *
+ * רק אלה. מפתח כמו Audience_Dt נקרא בטופס אחד "סגנון קהל יעד" ובאחר
+ * "למי מיועד השיעור", ולכן תרגום קבוע שלו היה משבץ ערך תחת תווית
+ * שגויה — טעות גרועה מהיעדר ערך, כי היא נראית כמו נתון תקין. שדות
+ * כאלה מטופלים בהתאמה לפי מיקום, שם הטופס עצמו קובע את המשמעות.
+ */
+const ENGLISH_LABELS: Record<string, string> = {
+  FirstName: 'שם הרב / שם מלא / איש קשר',
+  FullName: 'שם מלא',
+  Name: 'שם',
+  RavName: 'שם הרב',
+  Phone: 'טלפון / נייד',
+  Mobile: 'טלפון נייד',
+  Tel: 'טלפון',
+  Mail: 'מייל / אימייל',
+  Email: 'מייל / אימייל',
+  City: 'עיר',
+  Neighborhood: 'שכונה',
+  Street: 'רחוב',
+  HouseNumber: 'מספר',
+  Address: 'כתובת - מיקום',
+  BirthDate: 'ת. לידה',
+  MaritalStatus: 'מצב אישי',
+  SynagogueName: 'שם בית הכנסת',
+  Date: 'תאריך',
+  Time: 'שעה',
+};
+
+/**
  * בניית מפת תווית -> ערך מתוך גוף הפנייה.
- * נתמכים שני מבנים: זוגות FieldN / FieldN_Name, וגם אובייקט שמפתחותיו
- * הם התוויות עצמן — כך שגם שליחה ידנית לבדיקה עובדת.
+ *
+ * שלושה מבנים, כי נדרים פלוס שולחים אחרת מכפי שהונח בתחילה:
+ *
+ *   1. זוגות FieldN / FieldN_Name, המבנה שתועד.
+ *   2. מפתחות אנגליים בעלי שם — FirstName, Phone, City — כפי שמגיע
+ *      בפועל ב-JSON של הקאלבק. אלה שמשמעותם זהה בכל טופס מתורגמים
+ *      לפי הטבלה למעלה.
+ *   3. כל השאר, לפי מיקום. סדר המפתחות ב-JSON זהה לסדר השדות בטופס,
+ *      ולכן מספר הטופס מספיק כדי לדעת מה כל מפתח אומר. ההתאמה הזו
+ *      מתבצעת רק כשמספר המפתחות תואם בדיוק את מספר השדות שאנחנו
+ *      מכירים באותו טופס; אם הטופס שונה אצלם, עדיף לוותר על השדות
+ *      הלא מזוהים מאשר לשבץ ערכים בהיסט של שדה אחד.
+ *
+ * גם אובייקט שמפתחותיו הם התוויות בעברית עובד, לשליחה ידנית בבדיקה.
  */
 export function buildFieldMap(body: Record<string, unknown>): FieldMap {
   const map: FieldMap = new Map();
@@ -42,14 +94,29 @@ export function buildFieldMap(body: Record<string, unknown>): FieldMap {
     if (!map.has(key)) map.set(key, val);
   };
 
+  // 1. זוגות FieldN / FieldN_Name
   for (const [key, value] of Object.entries(body)) {
     const named = /^Field(\d+)_Name$/.exec(key);
-    if (named) {
-      put(str(value), body[`Field${named[1]}`]);
-      continue;
-    }
-    if (/^Field\d+$/.test(key) || key === 'type') continue;
-    // מפתח שאינו FieldN נחשב תווית בפני עצמה
+    if (named) put(str(value), body[`Field${named[1]}`]);
+  }
+
+  // 2. מפתחות אנגליים מוכרים
+  for (const [key, label] of Object.entries(ENGLISH_LABELS)) {
+    if (key in body) put(label, body[key]);
+  }
+
+  // 3. התאמה לפי מיקום, לפי מספר הטופס
+  const layout = layoutOf(str(body.TofesId || body.Tofes || body.FormId));
+  const ownKeys = Object.keys(body).filter(
+    (key) => !SYSTEM_KEYS.has(key) && !/^Field\d+(_Name)?$/.test(key),
+  );
+  if (layout && ownKeys.length === layout.fieldLabels.length) {
+    ownKeys.forEach((key, index) => put(layout.fieldLabels[index], body[key]));
+  }
+
+  // 4. מפתח שנשאר ללא פירוש נחשב תווית בפני עצמה
+  for (const [key, value] of Object.entries(body)) {
+    if (/^Field\d+(_Name)?$/.test(key) || key === 'type') continue;
     put(key, value);
   }
 

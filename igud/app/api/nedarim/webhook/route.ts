@@ -130,9 +130,18 @@ async function share(type: string, body: Record<string, unknown>, url: URL) {
    כיוון נכנס: טפסים מנדרים פלוס אל המאגר
    ============================================================ */
 
+/** המזהה של הפנייה אצל נדרים פלוס. IdFormsSend הוא השם שהם שולחים בפועל. */
+function externalIdOf(body: Record<string, unknown>): string | null {
+  for (const key of ['IdFormsSend', 'ID', 'Id', 'id', 'RecordId']) {
+    const value = str(body[key]);
+    if (value && value.toUpperCase() !== 'NULL') return value;
+  }
+  return null;
+}
+
 async function ingest(type: string, body: Record<string, unknown>, secret: string, ip: string | null) {
   const map = buildFieldMap(body);
-  const externalId = str(body.ID || body.Id || body.id || body.RecordId) || null;
+  const externalId = externalIdOf(body);
 
   let payload: Record<string, unknown>[];
   if (type === 'lesson_update' || type === 'lesson') {
