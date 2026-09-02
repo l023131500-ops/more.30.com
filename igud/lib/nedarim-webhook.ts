@@ -1,4 +1,5 @@
 import { parseDate, parseTime, multi, DAY_SLOTS } from './nedarim.js';
+import { layoutOf, type FormKind } from './nedarim-forms';
 
 /**
  * נקודת הקצה מול נדרים פלוס.
@@ -342,4 +343,74 @@ export function isInbound(type: string): type is InboundType {
 }
 export function isShare(type: string): type is ShareType {
   return (SHARE_TYPES as readonly string[]).includes(type);
+}
+
+/* ============================================================
+   זיהוי סוג הפנייה
+   ============================================================ */
+
+/** סוג הפנייה לפי אופי הטופס אצל נדרים פלוס. */
+const KIND_TO_TYPE: Record<FormKind, InboundType> = {
+  lesson: 'lesson_update',
+  host: 'seeker_request',
+  maggid: 'teacher_request',
+  subscriber: 'subscriber',
+};
+
+/** התוויות שמאחוריהן מסתתר סוג הפנייה בטופס עצמו. */
+const TYPE_LABELS = ['type', 'סוג', 'סוג הפנייה', 'סוג פנייה'];
+
+/**
+ * זיהוי סוג הפנייה.
+ *
+ * בטפסים של נדרים פלוס השדה הראשון הוא שדה מוסתר ששמו type, ולכן הוא
+ * אינו מגיע כמפתח type בגוף הפנייה אלא כזוג: Field1_Name=type לצד
+ * Field1=lesson_update. הקריאה למפתח type בלבד החמיצה אותו, וכל טופס
+ * אמיתי נדחה לפני שנבדק. כאן נבדקים ארבעה מקורות, לפי סדר יורד של
+ * ודאות, והראשון שנותן סוג מוכר מנצח:
+ *
+ *   1. type מפורש בגוף הפנייה או בכתובת.
+ *   2. תווית type בתוך שדות הטופס.
+ *   3. מספר הטופס, כשנדרים פלוס מצרפים אותו.
+ *   4. השדות עצמם, לפי צירופים שאין להם משמעות אחרת.
+ *
+ * מוחזרת גם דרך הזיהוי, כדי שאפשר יהיה לראות ביומן על מה הסתמכנו.
+ */
+export function resolveType(
+  body: Record<string, unknown>, explicit: string,
+): { type: string; from: string } {
+  if (explicit && (isInbound(explicit) || isShare(explicit))) {
+    return { type: explicit, from: 'מפורש' };
+  }
+
+  const map = buildFieldMap(body);
+
+  const labelled = pick(map, ...TYPE_LABELS);
+  if (labelled && (isInbound(labelled) || isShare(labelled))) {
+    return { type: labelled, from: 'שדה מוסתר בטופס' };
+  }
+
+  // מספר הטופס. נדרים פלוס אינם עקביים בשם המפתח, ולכן נסרקים כל
+  // המפתחות שיש בהם רמז לטופס, והערך נבדק מול הטפסים המוכרים.
+  for (const [key, value] of Object.entries(body)) {
+    if (!/tofes|form|טופס/i.test(key)) continue;
+    const layout = layoutOf(str(value));
+    if (layout) return { type: KIND_TO_TYPE[layout.kind], from: `טופס ${layout.form}` };
+  }
+
+  // אין סימן מפורש. נותרו השדות עצמם: כל צירוף כאן ייחודי לטופס אחד.
+  if (pick(map, 'מעוניינים לקבל את פרטי השיעור למייל / טלפון', 'חיפוש שיעור מתוך המאגר')) {
+    return { type: 'subscriber', from: 'שדות הטופס' };
+  }
+  if (pick(map, 'היכן אתה מעוניין למסור את השיעורים?', 'רקע מגיד שיעור', 'מה התגמול שהיית מצפה לקבל?')) {
+    return { type: 'teacher_request', from: 'שדות הטופס' };
+  }
+  if (pick(map, 'עבור מי אתם מעוניינים לקבוע שיעור?', 'כמה אתם מעוניינים לשלם לרב מגיד השיעור?')) {
+    return { type: 'seeker_request', from: 'שדות הטופס' };
+  }
+  if (pick(map, 'מה תרצו לעדכן', 'נושא השיעור', 'כתובת - מיקום')) {
+    return { type: 'lesson_update', from: 'שדות הטופס' };
+  }
+
+  return { type: '', from: '' };
 }

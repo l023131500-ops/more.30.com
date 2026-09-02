@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { publicClient } from '@/lib/supabase';
 import { LESSON_CARD_COLUMNS } from '@/lib/queries';
 import {
-  buildFieldMap, isInbound, isShare, lessonFromFields,
+  buildFieldMap, isInbound, isShare, lessonFromFields, resolveType,
   requestFromFields, subscriberFromFields, toShareRow, SHARE_COLUMNS,
   INBOUND_TYPES, SHARE_TYPES,
 } from '@/lib/nedarim-webhook';
@@ -13,7 +13,8 @@ export const maxDuration = 60;
 /**
  * נקודת הקצה היחידה מול נדרים פלוס.
  *
- * כתובת אחת, שני כיוונים, והזיהוי לפי השדה type:
+ * כתובת אחת ושני כיוונים. סוג הפנייה נקבע לפי type כשהוא נשלח, ואם
+ * לא — לפי השדה המוסתר שבטופס, מספר הטופס, או השדות עצמם:
  *
  *   נכנס  — lesson_update, lesson, seeker_request, teacher_request, subscriber
  *           הפנייה נשמרת גולמית, מפורקת לפי תוויות בעברית, ונכנסת
@@ -28,6 +29,26 @@ export const maxDuration = 60;
  */
 
 const str = (v: unknown) => (v === null || v === undefined ? '' : String(v).trim());
+
+/**
+ * שורת יומן לכל פנייה שנדחתה.
+ *
+ * פנייה שנדחית אינה נכתבת למסד, ולכן עד כה לא נשאר ממנה זכר, ואי אפשר
+ * היה לומר מה בדיוק הגיע. נרשמים המפתחות ותוויות השדות בלבד — די בהם
+ * כדי להבין את מבנה השליחה, ואין בהם תוכן אישי של הפונה.
+ */
+function traceRejected(reason: string, body: Record<string, unknown>) {
+  const labels = Object.entries(body)
+    .filter(([key]) => /^Field\d+_Name$/.test(key))
+    .map(([, value]) => str(value))
+    .filter(Boolean);
+
+  console.log('[nedarim] פנייה נדחתה', JSON.stringify({
+    reason,
+    keys: Object.keys(body).slice(0, 60),
+    labels: labels.slice(0, 60),
+  }));
+}
 
 async function readBody(request: Request): Promise<Record<string, unknown>> {
   const type = request.headers.get('content-type') || '';
@@ -157,13 +178,15 @@ export async function POST(request: Request) {
     const url = new URL(request.url);
     const body = await readBody(request);
     const secret = secretOf(request, body);
-    const type = str(body.type || body.Type || url.searchParams.get('type'));
+    const explicit = str(body.type || body.Type || url.searchParams.get('type'));
+    const { type, from } = resolveType(body, explicit);
 
     if (!type) {
+      traceRejected('סוג הפנייה לא זוהה', body);
       return NextResponse.json(
         {
           success: false,
-          message: 'חסר שדה type',
+          message: 'לא ניתן לזהות את סוג הפנייה',
           inbound: INBOUND_TYPES,
           share: SHARE_TYPES,
         },
@@ -176,17 +199,21 @@ export async function POST(request: Request) {
       p_key: 'nedarim', p_field: 'callbackSecret', p_secret: secret,
     });
     if (ok !== true) {
+      traceRejected(`אימות נכשל, סוג ${type}`, body);
       return NextResponse.json(
         { success: false, message: 'אימות נכשל' },
         { status: 401 },
       );
     }
 
+    console.log('[nedarim] פנייה התקבלה', JSON.stringify({ type, from }));
+
     const ip = request.headers.get('x-forwarded-for');
 
     if (isShare(type)) return share(type, body, url);
     if (isInbound(type)) return ingest(type, body, secret, ip);
 
+    traceRejected(`סוג לא מוכר: ${type}`, body);
     return NextResponse.json(
       {
         success: false,
