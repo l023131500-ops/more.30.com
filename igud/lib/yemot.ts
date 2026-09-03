@@ -134,6 +134,11 @@ export function read(text: string, varName: string, options: ReadOptions = {}): 
  * רווחים בין הספרות בטקסט: ההקראה יוצאת נכונה, ומספר לא ייקרא בטעות
  * כמיליונים.
  */
+export function sayLetters(value: string): string {
+  const clean = speakable(value).replace(/\s+/g, '');
+  return clean ? `id_list_message=a-${clean}` : '';
+}
+
 export function sayDigits(value: string): string {
   const clean = String(value || '').replace(/\D/g, '');
   return clean ? `id_list_message=d-${clean}` : '';
@@ -394,6 +399,36 @@ export function listDir(config: YemotConfig, path: string) {
    3. תבניות השלוחות
    ============================================================ */
 
+/** כתובת המייל שנשמעת בסוף התפריט הראשי. */
+const SITE_EMAIL = 'E023130600@GMAIL.COM';
+
+/**
+ * הקראת כתובת מייל, כפי שאדם היה מכתיב אותה בטלפון.
+ *
+ * הקראה ישירה יוצאת בליל: מנוע ההקראה קורא את השם כמילה ואת הסיומת
+ * כמילה נוספת. וגם אי אפשר פשוט לנקות את הטקסט, כי הנקודה והשטרודל
+ * הם בדיוק מה שצריך להישמע — והנקודה היא גם המפריד בין הודעה להודעה
+ * בפרוטוקול, כך שהיא נעלמת בניקוי ומשאירה גימייל קום.
+ *
+ * לכן הכתובת מפורקת: האותיות והספרות מוקראות אחת אחת בסוג a, ואילו
+ * השטרודל והנקודה נאמרים במילים.
+ */
+export function spellEmail(email: string): string[] {
+  const [name, domain = ''] = String(email || '').trim().split('@');
+  if (!name) return [];
+
+  const out = [`a-${name.replace(/[^A-Za-z0-9]/g, '')}`];
+  if (domain) {
+    out.push('t-שטרודל');
+    domain.split('.').forEach((part, index) => {
+      if (index) out.push('t-נקודה');
+      const clean = part.replace(/[^A-Za-z0-9]/g, '');
+      if (clean) out.push(`a-${clean}`);
+    });
+  }
+  return out;
+}
+
 export interface ExtensionPlan {
   ext: string;
   title: string;
@@ -430,7 +465,7 @@ export function rootMenuLines(c: (key: string) => string): string[] {
     'root.welcome.1', 'root.welcome.2',
     'root.ext.1', 'root.ext.2', 'root.ext.3', 'root.ext.4',
     'root.ext.5', 'root.ext.6', 'root.ext.7', 'root.ext.8',
-    'root.footer.1',
+    'root.footer.1', 'root.footer.2',
   ];
   return keys.map((key) => c(key)).filter(Boolean);
 }
@@ -444,8 +479,9 @@ export function rootMenuLines(c: (key: string) => string): string[] {
  * timeout ארוך יחסית בכוונה: התפריט הזה בן אחת עשרה הודעות, ומתקשר
  * ששומע אותו בפעם הראשונה צריך זמן להחליט אחרי שהוא נגמר.
  */
-export function rootMenuIni(c: (key: string) => string): string {
+export function rootMenuIni(c: (key: string) => string, email = SITE_EMAIL): string {
   const lines = rootMenuLines(c).map((line) => `t-${speakable(line)}`);
+  if (email) lines.push(...spellEmail(email));
   return [
     'type=menu',
     'timeout=12',
