@@ -1,6 +1,9 @@
 import { publicClient } from '@/lib/supabase';
-import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
-import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
+import {
+  goHome, hangup, isHangup, noop, respond, say, yemotParams,
+} from '@/lib/yemot';
+import { formStep, loadOptions } from '@/lib/ivr-form';
+import { maggidPlan } from '@/lib/ivr-plans';
 import { askMode, farewell, freeMessage } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 
@@ -10,11 +13,17 @@ export const maxDuration = 60;
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
 /**
- * שלוחה 3 — הצטרפות כמגיד שיעור.
+ * שלוחה 3 — הצטרפות למערך מגידי השיעורים.
  *
- * שני מסלולים בפתיחה: טופס מונחה בהקשות, או הודעה חופשית בקול. שניהם
- * מגיעים לאותה תיבה בניהול. מי שמתקשר תוך כדי הליכה לא יעבור שאלון,
- * ולא נרצה לאבד אותו בגלל זה.
+ * שני מסלולים בפתיחה: שאלון מונחה, או הודעה חופשית בקול. שניהם מגיעים
+ * לאותה תיבה בניהול, ואין ביניהם מסלול "נחות" — ההבדל הוא רק בכמה
+ * מהמידע הגיע מובנה. מי שמתקשר תוך כדי הליכה לא יעבור שאלון, ולא
+ * נרצה לאבד אותו בגלל זה.
+ *
+ * השאלון עצמו הוא טופס 4018 בנדרים פלוס, באותו סדר ועם אותן רשימות
+ * בחירה — כך שמי שנרשם בטלפון ומי שנרשם בעמדה נראים אותו דבר במאגר.
+ * ארבעה שדות בלבד הם חובה; כל השאר מדולגים בסולמית, ואפשר לחזור אחורה
+ * בכוכבית בכל שלב.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
@@ -37,52 +46,47 @@ async function handle(request: Request) {
   });
   if (free) return free;
 
-  const cities = await topCities(client, 40);
-  const cityChoice = pagedChoice(params, 'city', cities);
-  if ('askText' in cityChoice) {
-    return respond(
-      say(c('maggid.cityAsk')),
-      read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
-    );
-  }
+  const plan = maggidPlan(c);
+  const taxonomy = await loadOptions(client, plan);
 
-  const topics = await topTopics(client, 30);
-  const topicChoice = pagedChoice(params, 'topic', topics);
-  if ('askText' in topicChoice) {
-    return respond(
-      say(c('maggid.topicAsk')),
-      read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
-    );
-  }
+  const step = formStep(params, plan, taxonomy, c, {
+    onExit: () => respond(say(c('nav.back')), goHome()),
+  });
+  if (!step.done) return step.response;
 
-  if (!params.audience) {
-    return respond(
-      say(c('maggid.audienceAsk')),
-      read(c('maggid.audienceMenu'), 'audience', { min: 1, max: 1 }),
-    );
-  }
-
-  const city = cityChoice.value;
-  const topic = topicChoice.value;
-  const audience = ({ '1': 'גברים', '2': 'נשים', '3': 'גברים ונשים' } as Record<string, string>)[params.audience] || null;
+  const a = step.answers as Record<string, string | string[]>;
+  const one = (key: string) => (Array.isArray(a[key]) ? (a[key] as string[])[0] : a[key] as string) || null;
+  const many = (key: string) => (Array.isArray(a[key]) ? a[key] as string[] : a[key] ? [a[key] as string] : []);
 
   const { error } = await client.rpc('igud_submit_request', {
     p_kind: 'maggid',
     payload: {
-      contact_name: `פנייה טלפונית ${phone}`,
-      phone,
-      city,
+      contact_name: one('full_name'),
+      phone: one('phone') || phone,
+      city: one('city'),
       source: 'yemot',
       source_ref: params.ApiCallId || null,
-      details: { topics: topic ? [topic] : [], audienceGender: audience, viaVoice: true },
+      details: {
+        occupation: one('occupation'),
+        background: one('background'),
+        topics: many('topics'),
+        audienceGender: one('audienceGender'),
+        audienceStyles: many('audienceStyles'),
+        language: one('language'),
+        lessonCharacter: many('lessonCharacter'),
+        speechStyle: one('speechStyle'),
+        training: one('training'),
+        days: many('days'),
+        hours: many('hours'),
+        travelRange: one('travelRange'),
+        travel: one('travel'),
+        payExpectation: one('payExpectation'),
+        viaVoice: true,
+      },
     },
   });
-  if (error) {
-    return respond(
-      say(c('nav.error'), c('nav.retry')),
-      hangup(),
-    );
-  }
+
+  if (error) return respond(say(c('nav.error'), c('nav.retry')), hangup());
 
   return farewell(c, c('maggid.done.1'), c('maggid.done.2'), c('maggid.done.3'));
 }

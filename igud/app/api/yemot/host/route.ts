@@ -1,6 +1,9 @@
 import { publicClient } from '@/lib/supabase';
-import { hangup, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
-import { pagedChoice, topCities, topTopics } from '@/lib/ivr';
+import {
+  goHome, hangup, isHangup, noop, respond, say, yemotParams,
+} from '@/lib/yemot';
+import { formStep, loadOptions } from '@/lib/ivr-form';
+import { hostPlan } from '@/lib/ivr-plans';
 import { askMode, farewell, freeMessage } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 
@@ -10,10 +13,14 @@ export const maxDuration = 60;
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
 /**
- * שלוחה 4 — פתיחת שיעור תורה חדש.
+ * שלוחה 4 — הקמת שיעור תורה חדש.
  *
- * מקום שמחפש מגיד שיעור. כמו בשלוחה 3, שני מסלולים: טופס מונחה או
+ * מקום שמחפש מגיד שיעור. כמו בשלוחה 3, שני מסלולים: שאלון מונחה או
  * הודעה חופשית. גבאי שמתקשר בין מנחה למעריב לא יעבור שאלון.
+ *
+ * השאלון הוא טופס 4063 בנדרים פלוס, ובשונה משלוחה 3 אין כאן שלב
+ * זיהוי: מי שמבקש שיעור אינו בהכרח מוכר לנו, ואין סיבה לומר לו שהוא
+ * כן. שלושה שדות חובה, וכל השאר מדולגים בסולמית.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
@@ -36,52 +43,49 @@ async function handle(request: Request) {
   });
   if (free) return free;
 
-  if (!params.kind) {
-    return respond(
-      say(c('host.kindAsk')),
-      read(c('host.kindMenu'), 'kind', { min: 1, max: 1 }),
-    );
-  }
+  const plan = hostPlan(c);
+  const taxonomy = await loadOptions(client, plan);
 
-  const cities = await topCities(client, 40);
-  const cityChoice = pagedChoice(params, 'city', cities);
-  if ('askText' in cityChoice) {
-    return respond(
-      say(c('host.cityAsk')),
-      read(cityChoice.askText, cityChoice.varName, { min: 1, max: 1 }),
-    );
-  }
+  const step = formStep(params, plan, taxonomy, c, {
+    onExit: () => respond(say(c('nav.back')), goHome()),
+  });
+  if (!step.done) return step.response;
 
-  const topics = await topTopics(client, 30);
-  const topicChoice = pagedChoice(params, 'topic', topics);
-  if ('askText' in topicChoice) {
-    return respond(
-      say(c('host.topicAsk')),
-      read(topicChoice.askText, topicChoice.varName, { min: 1, max: 1 }),
-    );
-  }
-
-  const city = cityChoice.value;
-  const topic = topicChoice.value;
-  const requesterType = ({ '1': 'בית כנסת', '2': 'מרכז תורני', '3': 'לימוד בסגנון של חברותא' } as Record<string, string>)[params.kind] || null;
+  const a = step.answers as Record<string, string | string[]>;
+  const one = (key: string) => (Array.isArray(a[key]) ? (a[key] as string[])[0] : a[key] as string) || null;
+  const many = (key: string) => (Array.isArray(a[key]) ? a[key] as string[] : a[key] ? [a[key] as string] : []);
 
   const { error } = await client.rpc('igud_submit_request', {
     p_kind: 'open_lesson',
     payload: {
-      contact_name: `פנייה טלפונית ${phone}`,
-      phone,
-      city,
+      contact_name: one('contact_name'),
+      phone: one('phone') || phone,
+      city: one('city'),
       source: 'yemot',
       source_ref: params.ApiCallId || null,
-      details: { requesterType, topics: topic ? [topic] : [], viaVoice: true },
+      details: {
+        requesterType: one('requesterType'),
+        venue_name: one('venue_name'),
+        nusach: one('nusach'),
+        activity: one('activity'),
+        familyStyle: one('familyStyle'),
+        audienceGender: one('audienceGender'),
+        language: one('language'),
+        audienceStyles: many('audienceStyles'),
+        topics: many('topics'),
+        background: one('background'),
+        lessonCharacter: many('lessonCharacter'),
+        speechStyle: one('speechStyle'),
+        frequency: one('frequency'),
+        days: many('days'),
+        hours: many('hours'),
+        payerOffer: one('payerOffer'),
+        viaVoice: true,
+      },
     },
   });
-  if (error) {
-    return respond(
-      say(c('nav.error'), c('nav.retry')),
-      hangup(),
-    );
-  }
+
+  if (error) return respond(say(c('nav.error'), c('nav.retry')), hangup());
 
   return farewell(c, c('host.done.1'), c('host.done.2'), c('host.done.3'));
 }

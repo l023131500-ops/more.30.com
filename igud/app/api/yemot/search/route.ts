@@ -247,7 +247,7 @@ async function handle(request: Request) {
 
     if (nf === '2') {
       await client.rpc('igud_submit_request', {
-        p_kind: 'lesson_wanted',
+        p_kind: 'open_lesson',
         payload: {
           contact_name: `בקשה קולית ${params.ApiPhone || ''}`,
           phone: params.ApiPhone || '',

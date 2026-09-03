@@ -3,6 +3,9 @@ import {
   goHome, hangup, isHangup, noop, read, respond, say, yemotParams,
 } from '@/lib/yemot';
 import { numberedMenu } from '@/lib/ivr';
+import { detailSpeech, lessonById } from '@/lib/ivr-lesson';
+import { formStep, loadOptions } from '@/lib/ivr-form';
+import { daySlotOf, lessonPlan } from '@/lib/ivr-plans';
 import { farewell, freeMessage, isBack, isHome, roundOf } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 import { DAY_SLOTS } from '@/lib/nedarim.js';
@@ -27,31 +30,36 @@ interface MyLesson {
 }
 
 /**
- * שלוחה 2 — השיעורים שלי.
+ * שלוחה 2 — הוספה ועדכון של שיעור.
  *
- * הרעיון שמאחורי השלוחה הזו אינו "עדכון" אלא בעלות. מי שמתקשר מקבל
- * את רשימת השיעורים שרשומים עליו, מכל מקור שהוא — טופס בנדרים פלוס,
- * פנייה מהאתר, או שיחה קודמת לכאן — ויכול לומר עליהם משהו. הזיהוי
- * לפי המספר שממנו הוא מתקשר, כפי שנשמר בפרטי הקשר של השיעור.
+ * שני חצאים, ושניהם נדרשים כדי שהשלוחה תעשה את מה שהיא מבטיחה
+ * בפתיחה שלה. הראשון הוא בעלות: מי שמתקשר מקבל את רשימת השיעורים
+ * שרשומים עליו, מכל מקור שהוא — טופס בנדרים פלוס, פנייה מהאתר, או
+ * שיחה קודמת לכאן — ויכול לאשר, לשנות שעה או להפסיק פרסום. השני הוא
+ * הוספה: שאלון מלא שמכניס שיעור חדש למאגר, ממש כמו הטופס בעמדה.
  *
- * שלוש הפעולות על שיעור הן אישור, שינוי שעה והפסקת פרסום, וכולן
- * נשענות על פונקציות במסד שבודקות בעצמן שהשיעור אכן רשום על המספר
- * הזה. הנתיב הטלפוני אינו מאומת מעבר לזיהוי המספר, ולכן ההרשאה
- * נבדקת במקום שאי אפשר לעקוף.
+ * ההוספה פתוחה גם למי שלא מזוהה. אדם שמתקשר לספר על שיעור בבית
+ * הכנסת שלו אינו בהכרח מי שרשום עליו משהו, וקו שאומר לו "לא נמצאו
+ * שיעורים" ומחזיר אותו לתפריט הראשי הוא קו שסגר את הדלת בפניו.
+ *
+ * שלוש הפעולות על שיעור קיים נשענות על פונקציות במסד שבודקות בעצמן
+ * שהשיעור אכן רשום על המספר הזה. הנתיב הטלפוני אינו מאומת מעבר לזיהוי
+ * המספר, ולכן ההרשאה נבדקת במקום שאי אפשר לעקוף.
  *
  * אין כאן מחיקה, ובכוונה. זיהוי לפי מספר מתקשר אינו הרשאה מספיקה
  * למחוק לצמיתות רשומה שאנשים מסתמכים עליה. שיעור שהופסק יורד מהאתר
  * מיד, ההיסטוריה נשמרת, ואפשר להחזיר אותו בשיחה אחת. מחיקה אמיתית
  * נעשית בניהול, בידי אדם שהתחבר.
  *
- * השאלה "האם השיעור עדיין מתקיים כרגיל" היא הלב של השלוחה. מאגר
+ * השאלה "האם השיעור עדיין מתקיים כרגיל" היא הלב של החצי הראשון. מאגר
  * שיעורים מתיישן בשקט — שיעור שהופסק לפני חצי שנה נראה באתר בדיוק
  * כמו שיעור פעיל — ולכן כל שיחה לכאן היא הזדמנות לאשר, והאישור נרשם
  * עם תאריך.
  *
  * על הסבבים: ימות מחזירה בכל פנייה את כל המשתנים שנקראו ואי אפשר
- * למחוק אותם, ולכן "עדכון נוסף" ו"חזרה בכוכבית" פותחים סבב חדש עם
- * משתנים חדשים. בלי זה הבחירה הקודמת הייתה נמצאת שוב.
+ * למחוק אותם, ולכן "פעולה נוספת" ו"חזרה בכוכבית" פותחים סבב חדש עם
+ * משתנים חדשים. גם השאלון נושא את מספר הסבב בתחילית שלו, כדי ששני
+ * שיעורים שנוספים באותה שיחה לא ימצאו זה את תשובותיו של זה.
  */
 async function handle(request: Request) {
   const params = await yemotParams(request);
@@ -73,6 +81,66 @@ async function handle(request: Request) {
     }
   }
 
+  /* ============================================================
+     השאלון: הוספת שיעור חדש למאגר
+     ============================================================ */
+
+  const askNewLesson = async () => {
+    const plan = lessonPlan(c, `nl${r}`);
+    const taxonomy = await loadOptions(client, plan);
+
+    const step = formStep(params, plan, taxonomy, c, {
+      intro: [c('update.addIntro'), c('update.addNote')],
+      onExit: () => respond(say(c('nav.back')), goHome()),
+    });
+
+    if (!step.done) return step.response;
+
+    const a = step.answers as Record<string, string>;
+    const slot = daySlotOf(a.day);
+
+    // "הרב קוק 12" הוא רחוב ומספר, ושני שדות במסד
+    const street = String(a.street || '').trim();
+    const houseMatch = street.match(/\s(\d{1,4}[א-ת]?)$/);
+
+    const { error } = await client.rpc('igud_submit_lesson', {
+      payload: {
+        teacher_name: a.teacher_name,
+        topic: a.topic,
+        topics: a.topic ? [a.topic] : [],
+        city: a.city,
+        venue_name: a.venue_name,
+        street: houseMatch ? street.slice(0, houseMatch.index) : street || null,
+        house_no: houseMatch ? houseMatch[1] : null,
+        neighborhood: a.neighborhood || null,
+        audience_gender: a.audience_gender || null,
+        language: a.language || null,
+        lesson_character: a.lesson_character ? [a.lesson_character] : [],
+        contact_name: a.contact_name || a.teacher_name,
+        contact_phone: a.contact_phone || phone,
+        source: 'yemot',
+        occurrences: slot ? [{
+          weekday: slot.weekday,
+          day_label: slot.label,
+          time_of_day: a.time,
+          sort: (DAY_SLOTS as { label: string }[]).findIndex((d) => d.label === slot.label),
+        }] : [],
+      },
+    });
+
+    if (error) {
+      return respond(
+        say(c('nav.error'), c('nav.retry')),
+        read(c('update.more'), key('again'), { min: 1, max: 1 }),
+      );
+    }
+
+    return respond(
+      say(c('update.added.1'), c('update.added.2'), c('update.added.3')),
+      read(c('update.more'), key('again'), { min: 1, max: 1 }),
+    );
+  };
+
   /* ---------- זיהוי ---------- */
   if (phone.length < 9) {
     return respond(
@@ -84,11 +152,31 @@ async function handle(request: Request) {
   const { data } = await client.rpc('igud_ivr_my_lessons', { p_phone: phone, p_email: null });
   const mine = (data || []) as MyLesson[];
 
+  /* ============================================================
+     מי שאין עליו שיעור רשום
+     ============================================================ */
+
   if (!mine.length) {
-    return respond(
-      say(c('update.none.1'), c('update.none.2'), c('update.none.3'), c('nav.bye')),
-      goHome(),
-    );
+    if (v('nm') === undefined) {
+      return respond(
+        say(c('update.none.1'), c('update.none.2')),
+        read(c('update.newMenu'), key('nm'), { min: 1, max: 1 }),
+      );
+    }
+    if (isBack(v('nm')) || isHome(v('nm'))) {
+      return respond(say(c('nav.back')), goHome());
+    }
+    if (v('nm') === '2') {
+      const free = await freeMessage(client, { ...params, mode: '2' }, {
+        kind: 'update',
+        requestKind: 'open_lesson',
+        phone,
+        invite: c('update.freeInvite'),
+        copy: c,
+      });
+      if (free) return free;
+    }
+    return askNewLesson();
   }
 
   const pending = mine.filter((l) => l.status === 'pending').length;
@@ -116,7 +204,7 @@ async function handle(request: Request) {
   }
 
   if (isBack(v('m')) || isHome(v('m'))) {
-    return respond(say(c('nav.back')), isHome(v('m')) ? goHome() : goHome());
+    return respond(say(c('nav.back')), goHome());
   }
 
   /* ---------- 1: שמיעת השיעורים שלי ---------- */
@@ -133,8 +221,11 @@ async function handle(request: Request) {
     );
   }
 
-  /* ---------- 3: הודעה חופשית ---------- */
-  if (v('m') === '3') {
+  /* ---------- 3: הוספת שיעור חדש ---------- */
+  if (v('m') === '3') return askNewLesson();
+
+  /* ---------- 4: הודעה חופשית ---------- */
+  if (v('m') === '4') {
     const free = await freeMessage(client, { ...params, mode: '2' }, {
       kind: 'update',
       requestKind: 'open_lesson',
@@ -183,9 +274,13 @@ async function handle(request: Request) {
     return respond(say(c('nav.back')), read(c('update.more'), key('again'), { min: 1, max: 1 }));
   }
 
-  /* ---------- שלוש הפעולות ---------- */
+  /* ---------- הפרטים המלאים, ואז שלוש הפעולות ---------- */
   if (v('act') === undefined) {
+    // שיעור מפורסם נקרא במלואו מכרטיס השיעור. שיעור שממתין לאישור
+    // אינו בכרטיסים עדיין, ולכן נאמר עליו מה שידוע ולא נאמר "אין"
+    const card = await lessonById(client, lesson.id);
     return respond(
+      ...(card ? detailSpeech(card) : [say(describe(lesson))]),
       say(c('update.stillOn')),
       read(c('update.stillOnMenu'), key('act'), { min: 1, max: 1 }),
     );
