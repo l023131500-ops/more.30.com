@@ -287,7 +287,25 @@ export function formStep(
           if (!field.required) { space[i + 1] = st.n; continue; }
           return askField(i, st.next, c('form.needOne'));
         }
-        return askField(i, st.next);
+        if (st.last === '0' || st.last === '9') return askField(i, st.next);
+
+        /*
+         * אחרי בחירה אומרים מה נבחר, ולא מקריאים את הרשימה שוב.
+         *
+         * זה היה הכשל הגלוי ביותר בשיחה אמיתית: המתקשר בחר נושא, שמע
+         * את אותה שאלה מההתחלה, הניח שההקשה לא נקלטה, בחר שוב — ולא
+         * התקדם לעולם. עכשיו הוא שומע "נבחר גמרא" ואת שתי האפשרויות
+         * שנותרו, וזה כל ההבדל בין מנגנון שעובד למנגנון שנראה תקוע.
+         */
+        const picked = chosen[chosen.length - 1];
+        if (!picked) return askField(i, st.next, c('nav.notFound'));
+        return {
+          done: false,
+          response: respond(
+            say(c('form.multiPicked', { value: picked })),
+            read(c('form.multiSoFar'), st.next, { min: 1, max: 1, allowEmpty: true }),
+          ),
+        };
       }
 
       if (st.last === '0' || st.last === '9') return askField(i, st.next);

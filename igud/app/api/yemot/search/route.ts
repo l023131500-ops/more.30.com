@@ -58,6 +58,30 @@ const MODE_ASK: Record<string, string> = {
   '4': 'search.ask.city',
 };
 
+/**
+ * הערכים שאפשר להתאים אליהם מה שנאמר, ולא רק מה שכבר יש במאגר.
+ *
+ * ההתאמה נעשתה עד עכשיו רק מול ערים שיש בהן שיעורים, ולכן מי שאמר שם
+ * של עיר שעדיין אין בה שיעור לא הותאם כלל, והחיפוש נפל למילות מפתח
+ * גם כשהעיר נאמרה בבירור. הרשימה המלאה של הטופס נכנסת עכשיו ראשונה,
+ * ומה שבמאגר מתווסף אליה — כך שגם עיר או נושא שאינם ברשימה עדיין
+ * מותאמים אם הם קיימים בפועל.
+ *
+ * ומה שלא הותאם לשום ערך אינו אבוד: הוא ממשיך לחיפוש לפי מילות מפתח.
+ */
+async function knownValues(
+  client: ReturnType<typeof publicClient>,
+  kind: string,
+  fromData: (c: ReturnType<typeof publicClient>, limit: number) => Promise<string[]>,
+): Promise<string[]> {
+  const [taxonomy, used] = await Promise.all([
+    client.from('igud_taxonomy').select('value').eq('kind', kind).eq('active', true),
+    fromData(client, 300),
+  ]);
+  const list = ((taxonomy.data || []) as { value: string }[]).map((row) => row.value);
+  return [...new Set([...list, ...used])];
+}
+
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const client = publicClient();
@@ -194,11 +218,11 @@ async function handle(request: Request) {
     filter = { teacher: spoken };
     heading = `של ${spoken}`;
   } else if (mode === '3') {
-    const known = matchOne(await topTopics(client, 200), spoken);
+    const known = matchOne(await knownValues(client, 'topics', topTopics), spoken);
     filter = known ? { topic: known } : { words: keywordsOf(spoken) };
     heading = known ? `בנושא ${known}` : '';
   } else {
-    const known = matchOne(await topCities(client, 300), spoken);
+    const known = matchOne(await knownValues(client, 'cities', topCities), spoken);
     filter = known ? { city: known } : { words: keywordsOf(spoken) };
     heading = known ? `ב${known}` : '';
   }

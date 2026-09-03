@@ -12,16 +12,11 @@ export const maxDuration = 60;
 
 const digits = (v: string) => String(v || '').replace(/\D/g, '');
 
-interface PaySettings {
-  enabled?: boolean | string;
-  provider?: string;
-  shop?: string;
-  terminal?: string;
-  userName?: string;
-  password?: string;
-  currency?: string | number;
-  maxPayments?: string | number;
-  minAmount?: string | number;
+interface PayConfig {
+  enabled?: boolean;
+  currency?: string;
+  minAmount?: string;
+  maxPayments?: string;
 }
 
 /**
@@ -52,26 +47,21 @@ async function handle(request: Request) {
 
   if (isHangup(params)) return respond(noop('המתקשר ניתק'));
 
-  // פרטי הסולק, ומספר המוסד של האיגוד. שני מקורות ובכוונה: הגדרות
-  // הסליקה מחזיקות את מה שנוגע לימות, ואילו מספר המוסד והסיסמה כבר
-  // יושבים בהגדרות נדרים פלוס ומשרתים גם את הקאלבק ואת דף התרומות.
-  // שכפול שלהם היה מבטיח ששני העותקים יתפצלו ביום שבו אחד יוחלף.
-  const { data: rows } = await client
-    .from('igud_settings').select('key, value').in('key', ['yemotPay', 'nedarim']);
-  const groups = Object.fromEntries(
-    ((rows || []) as { key: string; value: unknown }[]).map((r) => [r.key, r.value || {}]),
-  ) as Record<string, Record<string, unknown>>;
-
-  const pay = (groups.yemotPay || {}) as PaySettings;
-  const mosad = (groups.nedarim || {}) as { mosadId?: string; apiPassword?: string };
-
-  const shop = String(pay.shop || mosad.mosadId || '');
-  const password = String(pay.password || mosad.apiPassword || '');
-  // די בהפעלה. שם הסולק אינו חובה כאן, כי הוא יכול לשבת בקובץ ההגדרות
-  // של השלוחה בימות — וזה המקום הנכון לו: שם יושבים גם הטרמינל והסיסמה,
-  // ומי שמחזיק את הגישה לימות רואה את הערכים המדויקים. השרת אומר כמה
-  // לגבות, ולא עם מי לדבר.
-  const payReady = pay.enabled === true || pay.enabled === 'true' || pay.enabled === 'yes';
+  /*
+   * הגדרות הסליקה, דרך פונקציה במסד ולא בקריאה ישירה.
+   *
+   * השורה מסומנת כסודית, וה-RLS חוסם אותה בהרשאת אנונימי — כך שקריאה
+   * ישירה מכאן החזירה תמיד ריק, והמתקשר שמע "התרומה בטלפון אינה
+   * זמינה" גם כשהסליקה הופעלה. הפונקציה מחזירה רק את מה שדרוש כאן:
+   * האם מופעל, מטבע, סכום מזערי ומספר תשלומים.
+   *
+   * הסולק, הטרמינל והסיסמה אינם מגיעים לכאן כלל, ואינם צריכים: הם
+   * יושבים בקובץ ההגדרות של שלוחה 5 בימות, וערך ריק בתשובה פירושו
+   * "קח מהשלוחה". מקור אחד לאמת, ובלי סוד שעובר דרך השרת.
+   */
+  const { data: payRow } = await client.rpc('igud_ivr_pay_config');
+  const pay = (payRow || {}) as PayConfig;
+  const payReady = pay.enabled === true;
 
   /* ---------- תשובת הסליקה, כשחוזרים ממנה ---------- */
   const code = String(params.CreditCard_CODE || '').trim();
@@ -177,16 +167,8 @@ async function handle(request: Request) {
 
     return respond(
       say(c('partner.beforePay')),
-      creditCard({
-        provider: pay.provider ? String(pay.provider) : '',
-        amount,
-        shop: pay.shop ? shop : '',
-        payments: pay.maxPayments ? String(pay.maxPayments) : undefined,
-        currency: pay.currency ?? 1,
-        userName: pay.userName ? String(pay.userName) : undefined,
-        terminal: pay.terminal ? String(pay.terminal) : undefined,
-        password: password || undefined,
-      }),
+      // הסכום בלבד. כל השאר ריק, וימות משלימה מקובץ ההגדרות של השלוחה
+      creditCard({ amount, currency: pay.currency ?? 1, payments: pay.maxPayments || undefined }),
     );
   }
 

@@ -66,6 +66,22 @@ export function say(...parts: (string | undefined | null)[]): string {
   return list.length ? `id_list_message=${list.join('.')}` : '';
 }
 
+/**
+ * שאלה או תפריט, כהודעה אחת רצופה.
+ *
+ * בין הודעה להודעה ימות עוצרת, וזה נכון כשמקריאים תוכן — בין שיעור
+ * לשיעור צריך אוויר. בתפריט זה הרסני: שמונה אפשרויות הפכו לשמונה
+ * הודעות ולשבע עצירות, והמתקשר שמע מערכת איטית שתוקעת אותו.
+ *
+ * כאן הכול נכנס להודעה אחת, והפסיק עושה את העבודה: מנוע ההקראה עוצר
+ * עליו רגע קצר, בדיוק כמו אדם שמקריא רשימה. הנקודה מוסרת כי היא
+ * מפרידה בין הודעות בפרוטוקול ואינה סימן פיסוק.
+ */
+export function flowing(...parts: (string | undefined | null)[]): string {
+  const list = segments(...parts).map((line) => line.slice(2));
+  return list.length ? `t-${list.join(', ')}` : '';
+}
+
 export interface ReadOptions {
   /** number לספרות, voice לזיהוי דיבור, record להקלטה השמורה במערכת */
   mode?: 'number' | 'voice' | 'record';
@@ -102,12 +118,13 @@ export interface ReadOptions {
  */
 export function read(text: string, varName: string, options: ReadOptions = {}): string {
   const {
-    mode = 'number', max = 10, min = 1, wait = 7,
+    mode = 'number', max = 10, min = 1, wait = 4,
     echo = 'No', confirm = false, allowEmpty = false,
     silence = 3, seconds = 20,
   } = options;
 
-  const prompt = segments(text).join('.');
+  // שאלה היא תמיד הודעה אחת: אין סיבה לעצור באמצע תפריט
+  const prompt = flowing(text);
 
   if (mode === 'voice') {
     // המנוע של ההקלטות, ולא של התפריט: הוא מאפשר משפט שלם ולא מילה

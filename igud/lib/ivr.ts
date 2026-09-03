@@ -39,7 +39,9 @@ export function describeLesson(row: {
 export function numberedMenu(items: string[], page = 0, pageSize = 9) {
   const start = page * pageSize;
   const slice = items.slice(start, start + pageSize);
-  const text = slice.map((item, i) => `להקשה על ${i + 1}, ${item}`).join('. ');
+  // מה האפשרות ואז המספר, ולא הפוך. מי שמקשיב צריך לדעת קודם על מה
+  // מדובר, ורק אז מה להקיש — אחרת הוא שומע מספר ומחכה לגלות למה
+  const text = slice.map((item, i) => `${item} הקישו ${i + 1}`).join('. ');
   const hasMore = items.length > start + pageSize;
   return {
     slice,

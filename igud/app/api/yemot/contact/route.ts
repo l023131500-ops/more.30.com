@@ -53,10 +53,9 @@ async function handle(request: Request) {
     const folder = String(agent.folder || '').trim();
 
     if (on && folder) {
-      return respond(
-        say(c('contact.agent.1'), c('contact.agent.2')),
-        goToFolder(folder),
-      );
+      // בלי הכרזה. מי שביקש נציג רוצה נציג, ולא משפט שמסביר לו שהוא
+      // עומד לקבל נציג — שלוחת הניתוב מנגנת בזמן ההמתנה
+      return respond(goToFolder(folder));
     }
     // אין נציג מוגדר: לא מנתקים ולא משמיעים שגיאה, אלא ממשיכים להודעה
     return respond(
