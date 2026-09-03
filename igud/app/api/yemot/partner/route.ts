@@ -47,12 +47,24 @@ async function handle(request: Request) {
 
   if (isHangup(params)) return respond(noop('המתקשר ניתק'));
 
-  const { data: row } = await client
-    .from('igud_settings').select('value').eq('key', 'yemotPay').maybeSingle();
-  const pay = ((row?.value || {}) as PaySettings);
+  // פרטי הסולק, ומספר המוסד של האיגוד. שני מקורות ובכוונה: הגדרות
+  // הסליקה מחזיקות את מה שנוגע לימות, ואילו מספר המוסד והסיסמה כבר
+  // יושבים בהגדרות נדרים פלוס ומשרתים גם את הקאלבק ואת דף התרומות.
+  // שכפול שלהם היה מבטיח ששני העותקים יתפצלו ביום שבו אחד יוחלף.
+  const { data: rows } = await client
+    .from('igud_settings').select('key, value').in('key', ['yemotPay', 'nedarim']);
+  const groups = Object.fromEntries(
+    ((rows || []) as { key: string; value: unknown }[]).map((r) => [r.key, r.value || {}]),
+  ) as Record<string, Record<string, unknown>>;
+
+  const pay = (groups.yemotPay || {}) as PaySettings;
+  const mosad = (groups.nedarim || {}) as { mosadId?: string; apiPassword?: string };
+
+  const shop = String(pay.shop || mosad.mosadId || '');
+  const password = String(pay.password || mosad.apiPassword || '');
   const payReady = Boolean(
     (pay.enabled === true || pay.enabled === 'true' || pay.enabled === 'yes')
-    && pay.provider,
+    && pay.provider && shop,
   );
 
   /* ---------- תשובת הסליקה, כשחוזרים ממנה ---------- */
@@ -85,7 +97,7 @@ async function handle(request: Request) {
   if (params.mode === '1') {
     if (!payReady) {
       return respond(
-        say(c('partner.unavailable')),
+        say(c('partner.unavailable'), c('partner.online')),
         say(c('partner.phone')),
         sayDigits(SITE.voiceLine),
         say(c('partner.thanks'), c('nav.bye')),
@@ -112,12 +124,12 @@ async function handle(request: Request) {
       creditCard({
         provider: String(pay.provider),
         amount,
-        shop: pay.shop ? String(pay.shop) : undefined,
+        shop,
         payments: pay.maxPayments ? String(pay.maxPayments) : undefined,
         currency: pay.currency ?? 1,
         userName: pay.userName ? String(pay.userName) : undefined,
         terminal: pay.terminal ? String(pay.terminal) : undefined,
-        password: pay.password ? String(pay.password) : undefined,
+        password: password || undefined,
       }),
     );
   }

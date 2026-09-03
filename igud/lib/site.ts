@@ -26,4 +26,5 @@ export const NAV = [
   { href: '/centers', label: 'מרכזי תורה' },
   { href: '/rabbis', label: 'מגידי שיעור' },
   { href: '/about', label: 'אודות' },
+  { href: '/donate', label: 'שותפות' },
 ] as const;
