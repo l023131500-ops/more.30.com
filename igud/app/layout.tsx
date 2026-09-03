@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Frank_Ruhl_Libre, Alef } from 'next/font/google';
+import { Frank_Ruhl_Libre, Assistant } from 'next/font/google';
 import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
@@ -13,10 +13,18 @@ const display = Frank_Ruhl_Libre({
   display: 'swap',
 });
 
-const body = Alef({
+/*
+ * אסיסטנט במקום אלף.
+ *
+ * אלף הוא פונט תקין וחסר אופי: משקל אחד וחצי, צורות אחידות, ובגדלים
+ * קטנים הוא נראה כמו טקסט של טופס. אסיסטנט תוכנן לעברית עם שישה
+ * משקלים, ולכן אפשר סוף סוף להבדיל בין כותרת משנה, טקסט רגיל והערה
+ * — וזה מה שעושה עמוד שנראה ערוך ולא מוקלד.
+ */
+const body = Assistant({
   subsets: ['hebrew', 'latin'],
-  weight: ['400', '700'],
-  variable: '--font-alef',
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-assistant',
   display: 'swap',
 });
 
@@ -39,7 +47,7 @@ export const metadata: Metadata = {
     siteName: 'איגוד השיעורים',
     locale: 'he_IL',
     type: 'website',
-    images: [{ url: '/brand/logo-640.webp', width: 640, height: 754, alt: 'איגוד השיעורים' }],
+    images: [{ url: '/brand/logo-640.webp', width: 640, height: 705, alt: 'איגוד השיעורים' }],
   },
   icons: {
     icon: [

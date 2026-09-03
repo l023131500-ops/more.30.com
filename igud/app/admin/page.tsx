@@ -15,6 +15,7 @@ import RequestsAdmin from '@/components/admin/RequestsAdmin';
 import ImportExport from '@/components/admin/ImportExport';
 import TaxonomyAdmin from '@/components/admin/TaxonomyAdmin';
 import SettingsAdmin from '@/components/admin/SettingsAdmin';
+import ApiDocsAdmin from '@/components/admin/ApiDocsAdmin';
 import SubscribersAdmin from '@/components/admin/SubscribersAdmin';
 import DonationsAdmin from '@/components/admin/DonationsAdmin';
 import { IconArrowLeft } from '@/components/Icons';
@@ -32,6 +33,7 @@ const SECTIONS = [
   { id: 'import', label: 'ייבוא וייצוא' },
   { id: 'taxonomy', label: 'רשימות בחירה' },
   { id: 'settings', label: 'חיבורים והגדרות' },
+  { id: 'apidocs', label: 'תיעוד API' },
 ];
 
 export default function AdminPage() {
@@ -132,6 +134,7 @@ export default function AdminPage() {
           {section === 'import' && <ImportExport />}
           {section === 'taxonomy' && <TaxonomyAdmin />}
           {section === 'settings' && <SettingsAdmin />}
+          {section === 'apidocs' && <ApiDocsAdmin />}
         </div>
       </div>
     </div>

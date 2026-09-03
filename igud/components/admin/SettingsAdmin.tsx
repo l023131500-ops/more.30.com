@@ -381,7 +381,6 @@ export default function SettingsAdmin() {
           <CopyField label="רשימת שיעורים" value={`${origin}/api/public/lessons`} />
           <CopyField label="שיעורים קרובים" value={`${origin}/api/public/upcoming`} />
           <CopyField label="רשימות בחירה" value={`${origin}/api/public/taxonomy`} />
-          <CopyField label="תיעוד מלא" value={`${origin}/api-docs`} />
         </div>
         <p className="mt-4 flex items-center gap-1.5 text-[0.78rem] text-ink-500">
           <IconLink className="h-3.5 w-3.5 text-gold-600" />

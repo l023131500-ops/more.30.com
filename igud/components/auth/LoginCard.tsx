@@ -40,7 +40,7 @@ export default function LoginCard({
             src={SITE.logoSmall}
             alt={SITE.name}
             width={220}
-            height={259}
+            height={242}
             className="h-24 w-auto"
           />
           <span className="font-display text-lg font-bold text-royal-700">{SITE.name}</span>

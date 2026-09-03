@@ -25,7 +25,6 @@ const COLUMNS = [
     title: 'מידע',
     links: [
       { href: '/about', label: 'אודות האיגוד' },
-      { href: '/api-docs', label: 'תיעוד ממשק API' },
       { href: '/privacy', label: 'פרטיות ותנאי שימוש' },
     ],
   },

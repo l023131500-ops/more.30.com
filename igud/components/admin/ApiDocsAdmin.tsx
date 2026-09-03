@@ -1,12 +1,16 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import { SITE } from '@/lib/site';
-import { IconArrowLeft, IconGlobe, IconLink, IconPhone } from '@/components/Icons';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'תיעוד ממשק API',
-  description: 'תיעוד הממשק הציבורי של איגוד השיעורים, כתובת ה-callback לנדרים פלוס וחיבור המערכת הקולית.',
-};
+import { SITE } from '@/lib/site';
+import { IconGlobe, IconLink, IconPhone } from '../Icons';
+
+/**
+ * תיעוד ממשק ה-API, בתוך הניהול.
+ *
+ * התיעוד ישב עד עכשיו בעמוד ציבורי, ולא היה לו מה לחפש שם: הוא מפרט
+ * כתובות כתיבה, שמות שדות ומבנה של callback, וזה מידע למי שמתחזק את
+ * המערכת ולא למי שמחפש שיעור. כאן הוא מגיע עם ההרשאה שכבר נדרשת
+ * לשאר מסכי הניהול, ולצד ההגדרות שהוא מדבר עליהן.
+ */
 
 function Code({ children }: { children: string }) {
   return (
@@ -56,19 +60,11 @@ const TOC = [
   { id: 'excel', label: 'ייבוא וייצוא אקסל' },
 ];
 
-export default function ApiDocsPage() {
+export default function ApiDocsAdmin() {
   const base = SITE.url;
 
   return (
-    <div className="mx-auto max-w-[1000px] px-4 py-10 sm:px-6">
-      <Link
-        href="/"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-bold text-ink-500 transition hover:text-royal-600"
-      >
-        <IconArrowLeft className="h-4 w-4" />
-        חזרה למאגר
-      </Link>
-
+    <div className="max-w-[900px]">
       <header>
         <p className="flex items-center gap-1.5 text-[0.75rem] font-bold uppercase tracking-wide text-gold-700">
           <IconGlobe className="h-3.5 w-3.5" />
@@ -145,8 +141,8 @@ export default function ApiDocsPage() {
         lead="כתובת אחת שמקבלת את כל ארבעת הטפסים. כל רשומה נכנסת לתור האישור, ומתפרסמת רק אחרי בדיקה."
       >
         <Endpoint method="POST" path="/api/nedarim/callback">
-          זו הכתובת שיש למסור לנדרים פלוס. הסוד נקבע במסך הניהול, בלשונית
-          {' '}<Link href="/admin" className="font-bold text-royal-600 underline underline-offset-2">חיבורים והגדרות</Link>,
+          זו הכתובת שיש למסור לנדרים פלוס. הסוד נקבע כאן בניהול, בלשונית
+          {' '}<span className="font-bold text-royal-600">חיבורים והגדרות</span>,
           ונשלח בכותרת <code dir="ltr">x-igud-secret</code> או בשדה <code dir="ltr">secret</code>.
         </Endpoint>
 

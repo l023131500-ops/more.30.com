@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { countdown, relativeWhen, timeLabel } from '@/lib/format';
-import { IconClock, IconLive, IconMic, IconPin } from './Icons';
+import { IconChevron, IconClock, IconLive, IconMic, IconPin } from './Icons';
 
 export interface UpcomingRow {
   lesson_id: string;
@@ -38,7 +38,19 @@ function rowTitle(row: UpcomingRow) {
 function Row({ row, order }: { row: UpcomingRow; order: number }) {
   const when = relativeWhen(row.next_at);
   const left = countdown(row.next_at);
-  const place = row.venue_name || row.location_exact || row.city || '';
+
+  /*
+   * המיקום במלואו, ולא רק שם המקום.
+   *
+   * "בית הכנסת המרכזי" לבדו אינו אומר לאיש איפה זה, ויש עשרה כאלה
+   * בארץ. מי שרואה שיעור קרוב שואל קודם כול אם הוא קרוב אליו, ולכן
+   * העיר והשכונה נאמרות לצד שם המקום. חלק ריק פשוט אינו מופיע.
+   */
+  const place = [
+    row.venue_name || row.location_exact,
+    row.neighborhood,
+    row.city,
+  ].map((part) => part?.trim()).filter(Boolean).join(' · ');
   const recorded = row.broadcast === 'recorded' || row.broadcast === 'both';
   const live = row.broadcast === 'live' || row.broadcast === 'both';
 
@@ -72,17 +84,29 @@ function Row({ row, order }: { row: UpcomingRow; order: number }) {
           {row.teacher_name}
         </span>
         {place && (
-          <span className="mt-0.5 flex items-center gap-1 truncate text-[0.75rem] text-ink-500">
-            <IconPin className="h-3 w-3 shrink-0 text-gold-500" />
-            {place}
+          <span className="mt-1 flex items-start gap-1 text-[0.76rem] leading-snug text-ink-500">
+            <IconPin className="mt-[0.15rem] h-3 w-3 shrink-0 text-gold-600" />
+            <span className="line-clamp-2">{place}</span>
           </span>
         )}
-        {left && (
-          <span className="mt-1 inline-block rounded-full bg-gold-100 px-2 py-0.5 text-[0.66rem] font-bold text-gold-700">
-            {left}
+        <span className="mt-1.5 flex items-center gap-2">
+          {left && (
+            <span className="inline-block rounded-full bg-gold-100 px-2 py-0.5 text-[0.66rem] font-bold text-gold-700">
+              {left}
+            </span>
+          )}
+          <span className="inline-flex items-center gap-0.5 text-[0.7rem] font-semibold text-royal-500
+                           opacity-0 transition-opacity group-hover:opacity-100">
+            לפרטי השיעור
+            <IconChevron className="h-3 w-3 rotate-180" />
           </span>
-        )}
+        </span>
       </span>
+
+      <IconChevron
+        className="mt-1 h-4 w-4 shrink-0 rotate-180 self-center text-parch-300
+                   transition-colors group-hover:text-gold-500"
+      />
     </Link>
   );
 }

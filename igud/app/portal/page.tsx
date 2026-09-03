@@ -121,7 +121,7 @@ export default function PortalPage() {
     <div className="mx-auto max-w-[1100px] px-4 py-8 sm:px-6">
       <header className="mb-8 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Image src={SITE.logoSmall} alt="" width={220} height={259} className="h-14 w-auto" />
+          <Image src={SITE.logoSmall} alt="" width={220} height={242} className="h-14 w-auto" />
           <div>
             <h1 className="font-display text-2xl font-bold text-royal-700">האזור האישי</h1>
             <p className="text-[0.8rem] text-ink-500">

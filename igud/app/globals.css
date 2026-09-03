@@ -6,27 +6,33 @@
    ============================================================ */
 
 @theme {
-  /* גוף האובל שבלוגו, מהעמוק שבקצוות ועד ההבהוב שבמרכז */
-  --color-royal-50:  #F2F7F8;
-  --color-royal-100: #DDECEF;
-  --color-royal-200: #B6D3DA;
-  --color-royal-300: #84B3BE;
-  --color-royal-400: #4C8998;
-  --color-royal-500: #2E6B7B;
-  --color-royal-600: #1F4E5B;
+  /*
+   * גוף האובל שבלוגו, מהעמוק שבקצוות ועד ההבהוב שבמרכז.
+   *
+   * הסולם הוגבר: הביניים היו אפרוריים ונתנו לעמוד מראה דהוי, וכעת יש
+   * בהם את הטורקיז שבאמת נמצא בלוגו. הקצוות העמוקים נשארו כפי שהיו,
+   * כי עליהם יושב טקסט לבן והם צריכים להישאר כהים דיים.
+   */
+  --color-royal-50:  #EFF8FA;
+  --color-royal-100: #D3EDF2;
+  --color-royal-200: #A3DAE4;
+  --color-royal-300: #6BBECE;
+  --color-royal-400: #3A9CB2;
+  --color-royal-500: #1F7C92;
+  --color-royal-600: #175E70;
   --color-royal-700: #17353D;
   --color-royal-800: #102831;
   --color-royal-900: #0A1B21;
 
-  /* המסגרת והעיטורים: זהב עתיק, לא צהוב */
-  --color-gold-50:  #FDFBF2;
-  --color-gold-100: #F7F1DE;
-  --color-gold-200: #EFE6C8;
-  --color-gold-300: #EAE1C0;
-  --color-gold-400: #D9C79A;
-  --color-gold-500: #C4A868;
-  --color-gold-600: #A98945;
-  --color-gold-700: #856A32;
+  /* המסגרת והעיטורים: זהב עתיק, לא צהוב. חומם מעט, כדי שיאיר ולא יאפיר */
+  --color-gold-50:  #FEFCF4;
+  --color-gold-100: #FAF3DC;
+  --color-gold-200: #F3E7BF;
+  --color-gold-300: #EBD9A2;
+  --color-gold-400: #DCC078;
+  --color-gold-500: #C9A44F;
+  --color-gold-600: #AC8534;
+  --color-gold-700: #866527;
 
   /* הקלף שבמגילה. קריר במעט, כדי לשבת נכון לצד הטורקיז */
   --color-parch-50:  #FCFCFA;
@@ -39,7 +45,7 @@
   --color-ink-900: #16262B;
 
   --font-display: var(--font-frank), "David Libre", Georgia, serif;
-  --font-body: var(--font-alef), "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-assistant), "Segoe UI", system-ui, sans-serif;
 
   --shadow-card: 0 1px 2px rgb(22 38 43 / 0.05), 0 8px 24px -12px rgb(22 38 43 / 0.18);
   --shadow-lift: 0 2px 4px rgb(22 38 43 / 0.06), 0 18px 40px -18px rgb(22 38 43 / 0.32);
@@ -53,10 +59,19 @@ html {
   background: var(--color-parch-100);
 }
 
+/*
+ * הרקע.
+ *
+ * שלוש שכבות, וכל אחת עושה דבר אחד: הילה חמה מלמעלה שמרימה את ראש
+ * העמוד, נגיעת טורקיז רכה בפינה שקושרת את הרקע ללוגו, ורשת עדינה
+ * מאוד שנותנת לשטח מרקש של נייר במקום שטח לבן ריק. הרשת בעוצמה
+ * נמוכה בכוונה — היא צריכה להיות מורגשת ולא נראית.
+ */
 body {
   background:
-    radial-gradient(1200px 620px at 78% -12%, #FFFDF7 0%, transparent 62%),
-    radial-gradient(900px 520px at 4% 4%, #F7EEDF 0%, transparent 58%),
+    radial-gradient(1100px 560px at 82% -14%, #FFFCF2 0%, transparent 60%),
+    radial-gradient(820px 480px at 2% 2%, #E4F3F6 0%, transparent 55%),
+    radial-gradient(700px 420px at 96% 88%, #FBF2DD 0%, transparent 58%),
     var(--color-parch-100);
   color: var(--color-ink-900);
   font-family: var(--font-body);
@@ -383,4 +398,47 @@ h1, h2, h3, h4, .font-display {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+
+/* ============================================================
+   מרקם הנייר, ופס הזהב שמפריד בין אזורים
+   ============================================================ */
+
+/*
+ * רשת עדינה על כל השטח.
+ *
+ * שטח בצבע אחיד נראה שטוח על מסך גדול, וזה בדיוק מה שמבדיל עמוד
+ * שנראה מודפס מעמוד שנראה ריק. שתי משיחות בזווית, בשקיפות של אחוז
+ * וחצי — מספיק כדי שהעין תרגיש נייר ולא מספיק כדי שתראה קווים.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(58deg, rgb(23 53 61 / 0.016) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-58deg, rgb(172 133 52 / 0.014) 0 1px, transparent 1px 9px);
+}
+
+/* כותרת אזור: פס זהב קצר מעל, כמו בכותרות של ספר */
+.section-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+}
+
+.section-mark::before,
+.section-mark::after {
+  content: "";
+  height: 1px;
+  width: 1.75rem;
+  background: linear-gradient(90deg, transparent, var(--color-gold-500));
+}
+
+.section-mark::after {
+  background: linear-gradient(90deg, var(--color-gold-500), transparent);
 }

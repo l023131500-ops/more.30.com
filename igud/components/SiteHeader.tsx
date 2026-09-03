@@ -37,7 +37,7 @@ export default function SiteHeader() {
             src={SITE.logoSmall}
             alt=""
             width={220}
-            height={259}
+            height={242}
             priority
             className={`w-auto transition-all duration-300 ${lifted ? 'h-10' : 'h-12 sm:h-14'}`}
           />

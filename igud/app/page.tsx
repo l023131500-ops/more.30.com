@@ -10,6 +10,7 @@ import UpcomingTicker, { type UpcomingRow } from '@/components/UpcomingTicker';
 import VenueMarquee, { type VenueTile } from '@/components/VenueMarquee';
 import { relativeWhen, todayHebrew } from '@/lib/format';
 import { SITE } from '@/lib/site';
+import BeitMidrash from '@/components/art/BeitMidrash';
 import { IconBook, IconBuilding, IconSparkle, IconUser } from '@/components/Icons';
 
 export const revalidate = 120;
@@ -86,13 +87,13 @@ async function loadData(): Promise<PageData> {
 
 function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-parch-300 bg-white/60 px-4 py-3">
-      <span className="grid h-9 w-9 place-items-center rounded-lg bg-gold-100 text-gold-700">
+    <div className="flex items-center gap-3 rounded-xl border border-gold-400/25 bg-white/10 px-4 py-3 backdrop-blur-sm">
+      <span className="grid h-9 w-9 place-items-center rounded-lg bg-gold-400/20 text-gold-200">
         {icon}
       </span>
       <span className="leading-tight">
-        <span className="block font-display text-xl font-bold tabular-nums text-royal-700">{value}</span>
-        <span className="block text-[0.72rem] text-ink-500">{label}</span>
+        <span className="block font-display text-xl font-bold tabular-nums text-parch-50">{value}</span>
+        <span className="block text-[0.72rem] text-royal-200">{label}</span>
       </span>
     </div>
   );
@@ -105,35 +106,51 @@ export default async function HomePage() {
   return (
     <>
       {/* ---------- כותרת ראשית ---------- */}
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]">
-          <div className="absolute left-[-8%] top-[-30%] h-[34rem] w-[34rem] rounded-full bg-royal-600 blur-3xl" />
-          <div className="absolute right-[-6%] top-[10%] h-[26rem] w-[26rem] rounded-full bg-gold-500 blur-3xl" />
+      {/*
+        האיור יושב מאחורי הכותרת ולא לצידה, ודוהה אל הטקסט.
+        כך יש לעמוד עומק ואווירה, והמילים נשארות הדבר הראשון שקוראים.
+      */}
+      <section className="relative overflow-hidden bg-royal-800">
+        <div className="pointer-events-none absolute inset-0">
+          <BeitMidrash className="h-full w-full" />
+          {/* שכבה כהה מצד הטקסט, כדי שהמילים יישבו על שקט ולא על פרטים */}
+          <div className="absolute inset-0 bg-gradient-to-l from-royal-900/92 via-royal-800/72 to-royal-900/35" />
         </div>
+        {/* פס זהב שסוגר את הפאנל, וקימור עדין אל התוכן הבהיר */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-l from-transparent via-gold-500/70 to-transparent" />
 
-        <div className="mx-auto grid max-w-[1400px] items-center gap-8 px-4 pb-10 pt-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:pt-14">
+        <div className="relative mx-auto grid max-w-[1400px] items-center gap-8 px-4 pb-14 pt-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:pb-16 lg:pt-16">
           <div className="animate-rise">
-            <span className="inline-flex items-center gap-2 rounded-full border border-gold-400 bg-gold-50 px-3.5 py-1.5 text-[0.78rem] font-bold text-gold-700">
+            <span className="inline-flex items-center gap-2 rounded-full border border-gold-500/60 bg-royal-900/50 px-3.5 py-1.5 text-[0.78rem] font-bold text-gold-200 backdrop-blur-sm">
               <IconSparkle className="h-3.5 w-3.5" />
               {hebrewToday}
             </span>
 
-            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.15] text-royal-700 sm:text-5xl lg:text-[3.4rem]">
+            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.15] text-parch-50 sm:text-5xl lg:text-[3.5rem]">
               כל שיעורי התורה בארץ,
               <br />
-              <span className="text-gold-600">במקום אחד</span>
+              <span className="bg-gradient-to-l from-gold-500 via-gold-300 to-gold-500 bg-clip-text text-transparent">
+                במקום אחד
+              </span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-700 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-royal-100 sm:text-lg">
               מאגר ארצי מתעדכן של זמני שיעורי תורה. מחפשים שיעור לפי רב, נושא, עיר או בית כנסת,
               ורואים מיד מה הקרוב ביותר. כל מגיד שיעור ומרכז תורני מעדכנים את הזמנים שלהם בעצמם.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/search" className="btn btn-primary !px-7 !py-3 !text-base">
+              <Link
+                href="/search"
+                className="btn btn-gold !px-7 !py-3 !text-base shadow-[0_10px_30px_-10px_rgba(201,164,79,0.7)]"
+              >
                 חיפוש שיעור
               </Link>
-              <Link href="/add" className="btn btn-gold !px-7 !py-3 !text-base">
+              <Link
+                href="/add"
+                className="btn !px-7 !py-3 !text-base border border-gold-400/50 bg-white/10 text-parch-50
+                           backdrop-blur-sm transition hover:border-gold-300 hover:bg-white/20"
+              >
                 הוספת שיעור למאגר
               </Link>
             </div>
@@ -158,14 +175,18 @@ export default async function HomePage() {
           </div>
 
           <div className="hidden justify-self-center lg:block">
-            <Image
-              src={SITE.logo}
-              alt={SITE.name}
-              width={640}
-              height={754}
-              priority
-              className="h-auto w-[17rem] drop-shadow-[0_18px_40px_rgba(74,24,24,0.28)] xl:w-[20rem]"
-            />
+            {/* הילה רכה מאחורי הלוגו, כדי שלא ייראה מודבק על הרקע */}
+            <div className="relative">
+              <div className="absolute inset-0 -z-10 scale-125 rounded-full bg-gradient-to-b from-gold-400/25 to-royal-400/25 blur-3xl" />
+              <Image
+                src={SITE.logo}
+                alt={SITE.name}
+                width={640}
+                height={705}
+                priority
+                className="h-auto w-[17rem] drop-shadow-[0_22px_48px_rgba(16,40,49,0.32)] xl:w-[20rem]"
+              />
+            </div>
           </div>
         </div>
       </section>
