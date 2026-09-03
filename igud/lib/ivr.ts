@@ -88,6 +88,9 @@ export async function upcomingFor(
   filter: { city?: string; topic?: string; teacher?: string } = {},
   limit = 5,
 ) {
+  // כמו ב-countFor: בלי מסנן אין תוצאות, לא הכול
+  if (!hasFilter(filter)) return [];
+
   let query = client
     .from('igud_upcoming')
     .select('lesson_id, title, topic, topics, teacher_name, venue_name, city, next_at, day_label, time_of_day')
@@ -104,6 +107,20 @@ export async function upcomingFor(
 }
 
 /**
+ * האם יש כאן בכלל מה לסנן לפיו.
+ *
+ * שאלה קטנה עם משמעות גדולה: מסנן ריק אינו "הכול" אלא "לא הבנתי".
+ * בלי ההבחנה הזו, מתקשר שאמר משפט שהחיפוש לא הצליח לפרק היה שומע
+ * את מספר כל השיעורים במאגר ואת חמשת הקרובים בארץ — תשובה שנשמעת
+ * כמו הצלחה ואין לה שום קשר למה שהוא ביקש.
+ */
+export function hasFilter(
+  filter: { city?: string; topic?: string; teacher?: string } = {},
+): boolean {
+  return Boolean(filter.city || filter.topic || filter.teacher);
+}
+
+/**
  * כמה שיעורים עונים לסינון, בלי להביא אותם.
  *
  * המערכת אומרת "נמצאו ארבעים ושניים שיעורים" לפני שהיא מקריאה משהו,
@@ -113,6 +130,9 @@ export async function countFor(
   client: SupabaseClient,
   filter: { city?: string; topic?: string; teacher?: string } = {},
 ): Promise<number> {
+  // מסנן ריק אינו מחזיר את כל המאגר. ראה hasFilter למעלה
+  if (!hasFilter(filter)) return 0;
+
   let query = client
     .from('igud_upcoming')
     .select('lesson_id', { count: 'exact', head: true })
