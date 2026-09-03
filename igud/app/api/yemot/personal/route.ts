@@ -3,6 +3,7 @@ import {
   goHome, isHangup, noop, read, respond, say, yemotParams,
 } from '@/lib/yemot';
 import { numberedMenu } from '@/lib/ivr';
+import { spokenTimes } from '@/lib/ivr-lesson';
 import { farewell, isBack, isHome, roundOf } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 
@@ -68,14 +69,14 @@ async function handle(request: Request) {
     lesson.teacher_name ? `מפי ${lesson.teacher_name}` : '',
     lesson.venue_name ? `ב${lesson.venue_name}` : '',
     lesson.city ? `ב${lesson.city}` : '',
-    lesson.when_text || '',
+    spokenTimes(lesson.when_text || ''),
   ].filter(Boolean).join(' ');
 
   /* ---------- התפריט ---------- */
   if (v('m') === undefined) {
     return respond(
       say(c('personal.intro.1'), c('personal.intro.2')),
-      say(c('personal.count', { count: saved.length })),
+      say(saved.length === 1 ? c('personal.countOne') : c('personal.count', { count: saved.length })),
       read(c('personal.menu'), key('m'), { min: 1, max: 1 }),
     );
   }
@@ -101,7 +102,7 @@ async function handle(request: Request) {
     const menu = numberedMenu(saved.map((lesson) => describe(lesson)));
     return respond(
       say(c('personal.removeAsk')),
-      read(menu.text, key('pick'), { min: 1, max: 1 }),
+      read(`${menu.text}. ${c('nav.hint')}`, key('pick'), { min: 1, max: 1 }),
     );
   }
   if (isBack(v('pick'))) {

@@ -1,4 +1,4 @@
-import type { FormPlan } from './ivr-form';
+import type { FormField, FormPlan } from './ivr-form';
 import type { Copy } from './ivr-copy';
 import { DAY_SLOTS } from './nedarim.js';
 
@@ -180,4 +180,45 @@ export function hostPlan(c: Copy, prefix = 'hs'): FormPlan {
       },
     ],
   };
+}
+
+/**
+ * עריכת שדה בודד בשיעור קיים, שלוחה 2 סעיף 4.4.
+ *
+ * כל ערך כאן הוא שאלון בן שדה אחד, ולכן הוא רץ באותו מנוע: אותו שיקוף,
+ * אותו אישור, ואותה חזרה בכוכבית. יום ושעה אינם ברשימה כי יש להם כבר
+ * מסלול משלהם שכותב לטבלת המועדים ולא לשיעור.
+ */
+export const EDIT_FIELDS: Record<string, { field: string; copy: string }> = {
+  1: { field: 'teacher_name', copy: 'update.edit.ask.teacher' },
+  2: { field: 'topic', copy: 'update.edit.ask.topic' },
+  3: { field: 'city', copy: 'update.edit.ask.city' },
+  4: { field: 'venue_name', copy: 'update.edit.ask.venue' },
+  6: { field: 'audience_gender', copy: 'update.edit.ask.audience' },
+  7: { field: 'contact_phone', copy: 'update.edit.ask.contact' },
+};
+
+/** שאלון בן שדה אחד, לעריכה */
+export function editPlan(c: Copy, choice: string, prefix: string): FormPlan | null {
+  const spec = EDIT_FIELDS[choice];
+  if (!spec) return null;
+
+  const base: Record<string, FormField> = {
+    teacher_name: { key: 'value', ask: c(spec.copy), kind: 'text', required: true },
+    topic: {
+      key: 'value', ask: c(spec.copy), kind: 'choice', taxonomy: 'topics', required: true,
+    },
+    city: {
+      key: 'value', ask: c(spec.copy), kind: 'text', match: 'cities', required: true,
+    },
+    venue_name: { key: 'value', ask: c(spec.copy), kind: 'text', required: true },
+    audience_gender: {
+      key: 'value', ask: c(spec.copy), kind: 'choice', taxonomy: 'audienceGender', required: true,
+    },
+    contact_phone: {
+      key: 'value', ask: c(spec.copy), kind: 'digits', min: 9, max: 10, required: true,
+    },
+  };
+
+  return { prefix, fields: [base[spec.field]] };
 }

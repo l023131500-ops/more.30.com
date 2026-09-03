@@ -118,6 +118,19 @@ export function timeInWords(raw: string | null | undefined): string {
   return `${hour} ${minutes} ${suffix}`;
 }
 
+/**
+ * החלפת כל שעה בתוך טקסט חופשי בשעה במילים.
+ *
+ * חלק מהתיאורים מגיעים מוכנים מהמסד — "יום שלישי בשעה 20:15" — ונאמרו
+ * עד כה כמספר. אותו שיעור נשמע מילולית בשלוחה אחת וכמכונה באחרת, וזה
+ * בדיוק סוג חוסר העקביות שהמאזין שם לב אליו גם כשאינו יודע להסביר.
+ */
+export function spokenTimes(text: string): string {
+  return String(text || '').replace(/\b(\d{1,2}):(\d{2})\b/g, (all, h, m) => (
+    timeInWords(`${h}:${m}`) || all
+  ));
+}
+
 /** מתי מתקיים השיעור, במשפט אחד. עד שלושה מועדים, ואחריהם "ועוד מועדים" */
 export function whenInWords(row: LessonRow): string {
   const list = (row.schedule || []).filter(Boolean);

@@ -1,6 +1,8 @@
 import { publicClient } from '@/lib/supabase';
-import { goHome, isHangup, noop, read, respond, say, sayDigits, yemotParams } from '@/lib/yemot';
-import { freeMessage } from '@/lib/ivr-flows';
+import {
+  goHome, goToFolder, isHangup, noop, read, respond, say, sayDigits, yemotParams,
+} from '@/lib/yemot';
+import { freeMessage, isBack, isHome } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 import { SITE } from '@/lib/site';
 
@@ -31,7 +33,40 @@ async function handle(request: Request) {
     );
   }
 
-  if (params.mode === '2') {
+  if (isBack(params.mode) || isHome(params.mode)) {
+    return respond(say(c('nav.back')), goHome());
+  }
+
+  /* ---------- 1: העברה לנציג ---------- */
+  //
+  // ההעברה עצמה נעשית בשלוחת ניתוב בימות, ולא בפקודה מכאן. זו אינה
+  // עקיפה אלא המקום הנכון: מספר הנציג, זמן ההמתנה ומה קורה כשאין
+  // מענה הם הגדרות של מרכזייה, ומי שמחזיק את הגישה לימות רואה אותן
+  // ומשנה אותן בלי פריסה. השרת רק מחליט מתי להעביר.
+  if (params.mode === '1') {
+    const { data: rows } = await client
+      .from('igud_settings').select('value').eq('key', 'agent').maybeSingle();
+    const agent = ((rows as { value?: Record<string, unknown> } | null)?.value || {}) as {
+      enabled?: boolean | string; folder?: string;
+    };
+    const on = agent.enabled === true || agent.enabled === 'true' || agent.enabled === 'yes';
+    const folder = String(agent.folder || '').trim();
+
+    if (on && folder) {
+      return respond(
+        say(c('contact.agent.1'), c('contact.agent.2')),
+        goToFolder(folder),
+      );
+    }
+    // אין נציג מוגדר: לא מנתקים ולא משמיעים שגיאה, אלא ממשיכים להודעה
+    return respond(
+      say(c('contact.agent.none')),
+      read(c('contact.freeInvite'), 'msg', { mode: 'voice', silence: 4, seconds: 60 }),
+    );
+  }
+
+  /* ---------- 3: מספר הטלפון ---------- */
+  if (params.mode === '3') {
     return respond(
       say(c('contact.phone')),
       sayDigits(SITE.voiceLine),

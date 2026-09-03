@@ -26,8 +26,12 @@ interface PaySettings {
 /**
  * שלוחה 5 — שותפות בפעילות.
  *
- * שלוש דרכים לתרום, לפי סדר הנוחות: כרטיס אשראי בשיחה עצמה, השארת
- * פרטים לחזרה, ומספר טלפון למי שמעדיף אדם.
+ * ארבע דרכים לקחת חלק, לפי סדר הנוחות: הוראת קבע, כרטיס אשראי בשיחה
+ * עצמה, השארת פרטים לחזרה, ומספר טלפון למי שמעדיף אדם.
+ *
+ * הוראת קבע אינה נסלקת כאן. היא דורשת הסכמה מתועדת, ומי שהקיש ארבע
+ * ספרות בטלפון לא נתן אותה — ולכן המסלול מסביר ומעביר לשתי הדרכים
+ * שבהן זה באמת נעשה.
  *
  * הסליקה עוברת דרך מודול הסליקה של ימות המשיח, שמדבר עם הסולק ישירות
  * ומחזיר לנו קוד תשובה. פרטי הסולק אינם כתובים בקוד אלא נקראים ממסך
@@ -94,8 +98,41 @@ async function handle(request: Request) {
     return respond(say(c('nav.back')), goHome());
   }
 
-  /* ---------- 1: תרומה בכרטיס אשראי ---------- */
+  /* ---------- 1: הוראת קבע ---------- */
+  //
+  // הוראת קבע אינה נפתחת בהקשות, וזו אינה מגבלה טכנית שאפשר לעקוף:
+  // היא דורשת הסכמה מתועדת, ומי שהקיש ארבע ספרות בטלפון לא נתן אותה.
+  // לכן כאן מסבירים, ומציעים את שתי הדרכים שבהן זה באמת נעשה.
   if (params.mode === '1') {
+    if (!params.st) {
+      return respond(
+        say(c('partner.standing.1'), c('partner.standing.2')),
+        read(c('partner.standing.menu'), 'st', { min: 1, max: 1 }),
+      );
+    }
+    if (isBack(params.st) || isHome(params.st)) {
+      return respond(say(c('nav.back')), goHome());
+    }
+    if (params.st === '2') {
+      return respond(
+        say(c('partner.phone')),
+        sayDigits(SITE.voiceLine),
+        say(c('partner.thanks'), c('nav.bye')),
+        goHome(),
+      );
+    }
+    const standing = await freeMessage(client, { ...params, mode: '2' }, {
+      kind: 'donation',
+      requestKind: 'open_lesson',
+      phone,
+      invite: c('partner.freeInvite'),
+      copy: c,
+    });
+    if (standing) return standing;
+  }
+
+  /* ---------- 2: תרומה חד פעמית בכרטיס אשראי ---------- */
+  if (params.mode === '2') {
     if (!payReady) {
       return respond(
         say(c('partner.unavailable'), c('partner.online')),
@@ -135,8 +172,8 @@ async function handle(request: Request) {
     );
   }
 
-  /* ---------- 3: מספר הטלפון ---------- */
-  if (params.mode === '3') {
+  /* ---------- 4: מספר הטלפון ---------- */
+  if (params.mode === '4') {
     return respond(
       say(c('partner.phone')),
       sayDigits(SITE.voiceLine),
@@ -145,7 +182,7 @@ async function handle(request: Request) {
     );
   }
 
-  /* ---------- 2: השארת פרטים ---------- */
+  /* ---------- 3: השארת פרטים ---------- */
   const free = await freeMessage(client, { ...params, mode: '2' }, {
     kind: 'donation',
     requestKind: 'open_lesson',

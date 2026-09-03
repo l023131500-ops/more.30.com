@@ -20,6 +20,7 @@ const DEFAULTS: Settings = {
     enabled: 'false', provider: '', shop: '', terminal: '',
     userName: '', password: '', currency: '1', maxPayments: '', minAmount: '10',
   },
+  agent: { enabled: 'false', folder: '/9' },
 };
 
 /** קריאת שדה טקסט מתוך קבוצת הגדרות, בלי להניח על הטיפוס. */
@@ -273,6 +274,35 @@ export default function SettingsAdmin() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Row label="מפתח API" value={text(settings.ai, 'apiKey')} onChange={(v) => set('ai', 'apiKey', v)} secret />
           <Row label="דגם" value={text(settings.ai, 'model')} onChange={(v) => set('ai', 'model', v)} />
+        </div>
+      </Panel>
+
+      <Panel
+        title="העברה לנציג בשלוחה 6"
+        description="ההעברה עצמה היא שלוחת ניתוב בימות המשיח, ולא פקודה מהשרת. שם יושבים מספר הנציג, זמן ההמתנה ומה קורה כשאין מענה."
+        actions={
+          <button type="button" onClick={() => save('agent', true)} disabled={busy} className="btn btn-primary !py-2 !text-[0.82rem]">
+            שמירה
+          </button>
+        }
+      >
+        <p className="mb-4 rounded-xl border border-royal-300 bg-royal-50 px-4 py-3 text-[0.82rem] leading-relaxed text-royal-700">
+          כל עוד <strong>הפעלה</strong> אינה true, ההקשה על 1 בשלוחה 6 אומרת שאין כרגע נציג
+          זמין ועוברת ישר להשארת הודעה. המתקשר לעולם אינו שומע שגיאה ואינו מנותק.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Row
+            label="הפעלה"
+            value={text(settings.agent, 'enabled')}
+            onChange={(v) => set('agent', 'enabled', v)}
+            hint="true להפעלה, אחרי ששלוחת הניתוב נבנתה בימות"
+          />
+          <Row
+            label="שלוחת הניתוב"
+            value={text(settings.agent, 'folder')}
+            onChange={(v) => set('agent', 'folder', v)}
+            hint="הנתיב בימות, למשל /9. שם מוגדר מספר הנציג"
+          />
         </div>
       </Panel>
 

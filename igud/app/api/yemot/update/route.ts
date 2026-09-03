@@ -3,9 +3,9 @@ import {
   goHome, hangup, isHangup, noop, read, respond, say, yemotParams,
 } from '@/lib/yemot';
 import { numberedMenu } from '@/lib/ivr';
-import { detailSpeech, lessonById } from '@/lib/ivr-lesson';
+import { detailSpeech, lessonById, spokenTimes } from '@/lib/ivr-lesson';
 import { formStep, loadOptions } from '@/lib/ivr-form';
-import { daySlotOf, lessonPlan } from '@/lib/ivr-plans';
+import { daySlotOf, editPlan, EDIT_FIELDS, lessonPlan } from '@/lib/ivr-plans';
 import { farewell, freeMessage, isBack, isHome, roundOf } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 import { DAY_SLOTS } from '@/lib/nedarim.js';
@@ -186,7 +186,7 @@ async function handle(request: Request) {
     const parts = [lesson.title || lesson.topic || 'שיעור תורה'];
     if (lesson.venue_name) parts.push(`ב${lesson.venue_name}`);
     if (lesson.city) parts.push(`ב${lesson.city}`);
-    if (lesson.when_text) parts.push(lesson.when_text);
+    if (lesson.when_text) parts.push(spokenTimes(lesson.when_text));
     if (lesson.status === 'pending') parts.push(c('update.statusPending'));
     if (lesson.status === 'paused') parts.push(c('update.statusPaused'));
     return parts.join(' ');
@@ -241,7 +241,7 @@ async function handle(request: Request) {
     const menu = numberedMenu(mine.map((lesson) => describe(lesson)));
     return respond(
       say(c('update.pickAsk')),
-      read(menu.text, key('pick'), { min: 1, max: 1 }),
+      read(`${menu.text}. ${c('nav.hint')}`, key('pick'), { min: 1, max: 1 }),
     );
   }
   if (isBack(v('pick'))) {
@@ -301,8 +301,14 @@ async function handle(request: Request) {
     );
   }
 
-  // 3 — הפסקת פרסום
+  // 3 — הפסקת פרסום, אחרי אישור כפול
   if (v('act') === '3') {
+    if (v('sure') === undefined) {
+      return respond(read(c('update.sureAsk'), key('sure'), { min: 1, max: 1 }));
+    }
+    if (v('sure') !== '1') {
+      return respond(say(c('nav.back')), read(c('update.more'), key('again'), { min: 1, max: 1 }));
+    }
     const { data: res } = await client.rpc('igud_ivr_set_status', {
       p_phone: phone, p_lesson: lesson.id, p_status: 'paused', p_source: 'yemot',
     });
@@ -319,12 +325,72 @@ async function handle(request: Request) {
     );
   }
 
-  /* ---------- 2 — שינוי שעה ---------- */
+  /* ============================================================
+     2 — שינוי פרטי השיעור
+     ============================================================ */
+
+  if (v('ed') === undefined) {
+    return respond(read(c('update.edit.menu'), key('ed'), { min: 1, max: 1 }));
+  }
+  if (isBack(v('ed'))) {
+    return respond(say(c('nav.back')), read(c('update.more'), key('again'), { min: 1, max: 1 }));
+  }
+
+  /* ---------- שדה בודד, דרך אותו מנוע שאלון ---------- */
+  if (EDIT_FIELDS[v('ed')]) {
+    const spec = EDIT_FIELDS[v('ed')];
+    const plan = editPlan(c, v('ed'), `ed${r}_`);
+    if (plan) {
+      const taxonomy = await loadOptions(client, plan);
+      const step = formStep(params, plan, taxonomy, c, {
+        onExit: () => respond(
+          say(c('nav.back')),
+          read(c('update.more'), key('again'), { min: 1, max: 1 }),
+        ),
+      });
+      if (!step.done) return step.response;
+
+      const value = step.answers.value as string;
+      const { data: res } = await client.rpc('igud_ivr_set_field', {
+        p_phone: phone,
+        p_lesson: lesson.id,
+        p_field: spec.field,
+        p_value: value,
+        p_source: 'yemot',
+      });
+      const result = (res as { success?: boolean; message?: string } | null) || {};
+      if (result.success === false) {
+        return respond(
+          say(result.message || c('nav.error')),
+          read(c('update.more'), key('again'), { min: 1, max: 1 }),
+        );
+      }
+
+      // עדכון פרט הוא גם אישור שהשיעור מתקיים
+      await client.rpc('igud_ivr_confirm', {
+        p_phone: phone, p_lesson: lesson.id, p_source: 'yemot',
+      });
+
+      return respond(
+        say(c('update.edit.done'), c('update.edit.online')),
+        read(c('update.more'), key('again'), { min: 1, max: 1 }),
+      );
+    }
+  }
+
+  if (v('ed') !== '5') {
+    return respond(
+      say(c('nav.notFound')),
+      read(c('update.more'), key('again'), { min: 1, max: 1 }),
+    );
+  }
+
+  /* ---------- 5 — שינוי יום ושעה ---------- */
   if (v('day') === undefined) {
     const menu = numberedMenu(DAY_SLOTS.map((d: { label: string }) => d.label));
     return respond(
       say(c('update.dayAsk')),
-      read(menu.text, key('day'), { min: 1, max: 1 }),
+      read(`${menu.text}. ${c('nav.hint')}`, key('day'), { min: 1, max: 1 }),
     );
   }
   if (isBack(v('day'))) {
@@ -381,7 +447,7 @@ async function handle(request: Request) {
   return respond(
     say(
       c('update.saved.1'),
-      c('update.saved.2', { day: slot.label, time }),
+      c('update.saved.2', { day: slot.label, time: spokenTimes(time) }),
       c('update.saved.3'),
     ),
     read(c('update.more'), key('again'), { min: 1, max: 1 }),
