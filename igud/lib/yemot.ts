@@ -142,8 +142,16 @@ export function sayDigits(value: string): string {
 /* ---------- סליקה ---------- */
 
 export interface PaymentPlan {
-  /** שם הסולק כפי שימות מכירה אותו, למשל nedarim */
-  provider: string;
+  /**
+   * שם הסולק כפי שימות מכירה אותו.
+   *
+   * ריק בכוונה כשפרטי הסולק מוגדרים בקובץ ההגדרות של השלוחה עצמה.
+   * זה המצב המומלץ: מי שמחזיק את הגישה לימות רואה שם את שם הסולק
+   * המדויק ואת הטרמינל, ואילו השרת אינו צריך לדעת אותם כלל — הוא
+   * אומר רק כמה לגבות. ערך שנשלח כאן גובר על מה שבשלוחה, וזה מה
+   * שמאפשר סכום שונה לכל תורם.
+   */
+  provider?: string;
   /** סכום לחיוב בשקלים. בלי סכום, המתקשר בוחר בעצמו */
   amount?: number | string;
   /** מספר חנות או פרויקט אצל הסולק */
@@ -174,7 +182,7 @@ export interface PaymentPlan {
  */
 export function creditCard(plan: PaymentPlan): string {
   const values = [
-    plan.provider,
+    plan.provider ?? '',
     plan.amount ?? '',
     plan.shop ?? '',
     plan.payments ?? '',

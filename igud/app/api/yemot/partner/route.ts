@@ -62,10 +62,11 @@ async function handle(request: Request) {
 
   const shop = String(pay.shop || mosad.mosadId || '');
   const password = String(pay.password || mosad.apiPassword || '');
-  const payReady = Boolean(
-    (pay.enabled === true || pay.enabled === 'true' || pay.enabled === 'yes')
-    && pay.provider && shop,
-  );
+  // די בהפעלה. שם הסולק אינו חובה כאן, כי הוא יכול לשבת בקובץ ההגדרות
+  // של השלוחה בימות — וזה המקום הנכון לו: שם יושבים גם הטרמינל והסיסמה,
+  // ומי שמחזיק את הגישה לימות רואה את הערכים המדויקים. השרת אומר כמה
+  // לגבות, ולא עם מי לדבר.
+  const payReady = pay.enabled === true || pay.enabled === 'true' || pay.enabled === 'yes';
 
   /* ---------- תשובת הסליקה, כשחוזרים ממנה ---------- */
   const code = String(params.CreditCard_CODE || '').trim();
@@ -122,9 +123,9 @@ async function handle(request: Request) {
     return respond(
       say(c('partner.beforePay')),
       creditCard({
-        provider: String(pay.provider),
+        provider: pay.provider ? String(pay.provider) : '',
         amount,
-        shop,
+        shop: pay.shop ? shop : '',
         payments: pay.maxPayments ? String(pay.maxPayments) : undefined,
         currency: pay.currency ?? 1,
         userName: pay.userName ? String(pay.userName) : undefined,
