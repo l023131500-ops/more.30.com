@@ -15,8 +15,8 @@ import { copyDefaults, type Copy } from '@/lib/ivr-copy';
  * לכל סבב מספר משלו, וכל המשתנים שלו נושאים אותו. זו הדרך היחידה
  * שבה חזרה באמת מנקה את המסך במקום למצוא את הבחירה הקודמת.
  */
-export const isBack = (value?: string) => String(value || '').trim() === '*';
-export const isHome = (value?: string) => String(value || '').trim() === '0';
+export const isBack = (value?: string | null) => String(value || '').trim() === '*';
+export const isHome = (value?: string | null) => String(value || '').trim() === '0';
 
 /** מספר הסבב הפעיל, לפי כמה סבבים כבר נסגרו בשיחה. */
 export function roundOf(params: Record<string, string>, marker: string): number {
@@ -103,4 +103,38 @@ export async function freeMessage(
   }
 
   return farewell(c, c('free.saved.1'), c('free.saved.2'));
+}
+
+/* ============================================================
+   רשימות ארוכות בטלפון
+   ============================================================ */
+
+/**
+ * מצב הרשימה: באיזה עמוד אנחנו, ומה הוקש לאחרונה.
+ *
+ * ימות מחזירה בכל פנייה את כל המשתנים שכבר נקראו ואי אפשר למחוק
+ * אותם, ולכן מספר ההקשה מקודד בשם המשתנה: p0_0, p0_1 וכן הלאה. כל
+ * הקשה מקבלת שם חדש, ומספר העמוד נספר לפי כמה מהן היו אפס — כך
+ * שהקשה על מספר שיעור אינה מקדמת עמוד, והקשה על תשע להשמעה חוזרת
+ * משמיעה שוב את אותו עמוד בדיוק.
+ */
+export function pageState(params: Record<string, string>, prefix: string) {
+  let n = 0;
+  while (params[`${prefix}${n}`] !== undefined) n += 1;
+
+  let page = 0;
+  for (let i = 0; i < n; i += 1) {
+    if (String(params[`${prefix}${i}`] ?? '').trim() === '0') page += 1;
+  }
+
+  return {
+    /** כמה הקשות כבר היו */
+    n,
+    /** ההקשה האחרונה, או null אם עדיין לא הייתה */
+    last: n ? String(params[`${prefix}${n - 1}`] ?? '').trim() : null,
+    /** העמוד המוצג כרגע */
+    page,
+    /** שם המשתנה לקריאה הבאה */
+    next: `${prefix}${n}`,
+  };
 }

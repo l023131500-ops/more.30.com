@@ -1,193 +1,402 @@
 import { publicClient } from '@/lib/supabase';
 import { goHome, isHangup, noop, read, respond, say, yemotParams } from '@/lib/yemot';
+import { topCities, topTopics } from '@/lib/ivr';
 import {
-  citiesWithin, countFor, describeLesson, keywordSearch, pagedChoice, upcomingFor,
-} from '@/lib/ivr';
+  countLessons, detailSpeech, keywordsOf, lessonById, listLine, matchOne,
+  narrowOptions, pageOfLessons, type LessonRow, type SearchFilter,
+} from '@/lib/ivr-lesson';
 import { describeIntent, logRequest, readIntent, type Intent } from '@/lib/ivr-ai';
-import { farewell, isBack, isHome, roundOf } from '@/lib/ivr-flows';
+import { farewell, isBack, pageState, roundOf } from '@/lib/ivr-flows';
 import { loadCopy } from '@/lib/ivr-copy';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 /**
- * שלוחה 1 — חיפוש שיעורים.
+ * שלוחה 1 — חיפוש שיעור.
  *
- * המתקשר מדבר חופשי, ולא בוחר מתפריט. זו ההחלטה המרכזית כאן: אדם שמחפש
- * שיעור יודע לומר "דף יומי בבני ברק" הרבה לפני שהוא יודע באיזה ענף של
- * תפריט זה יושב. המשפט מפורק לשם רב, עיר ונושא, ומשם החיפוש.
+ * ארבעה מסלולים שמגיעים לאותו מקום: חיפוש חכם שבו אומרים משפט שלם,
+ * וחיפוש לפי שם הרב, לפי נושא או לפי עיר. בכל אחד מהם המתקשר מדבר,
+ * שומע מה המערכת הבינה, ומאשר. רק אז מחפשים.
  *
- * שלושה מצבים אפשריים אחרי החיפוש:
+ * שלושה כללים שאין לחרוג מהם, וכל אחד מהם נלמד מכישלון:
  *
- *   אין תוצאות  — נאמר במפורש שלא נמצא, ומוצע לנסות שוב או להשאיר הודעה.
- *   מעט תוצאות  — מוקראות מיד.
- *   הרבה תוצאות — נאמר כמה נמצאו, ומוצע לשמוע את הראשונות או לצמצם לפי עיר.
+ *   מסנן ריק אינו "הכול" אלא "לא הבנתי". אם מהמשפט לא חולץ דבר,
+ *   אסור להקריא את המאגר. מנסים מילות מפתח, ואם גם הן לא מצאו —
+ *   אומרים שלא נמצא.
  *
- * כל פנייה נרשמת, גם כשלא נמצא דבר. דווקא אז היא שווה יותר: זו רשימת
- * מה שחסר במאגר, ומה שנוסח אחרת מכפי שהחיפוש יודע לקרוא. גם ניתוק
- * באמצע נרשם, כי גם הוא אומר משהו.
+ *   ברשימה נאמרים שלושה פרטים בלבד: שם הרב, תפקידו, ונושא השיעור.
+ *   הפרטים המלאים ממתינים אחרי הבחירה.
+ *
+ *   כל הקלטה מלווה בשיקוף ובאישור. תמלול שגוי שממשיך בשקט הוא הדרך
+ *   הבטוחה לגרום למתקשר לחשוב שאין שיעורים בעיר שלו.
  *
  * על שמות המשתנים: ימות המשיח מחזירה בכל פנייה את כל המשתנים שכבר
- * נקראו בשלוחה, ולכן הם זיכרון השיחה — אבל גם אי אפשר למחוק אותם.
- * לכן לכל סבב חיפוש יש מספר משלו, וכל המשתנים שלו נושאים אותו. בלי זה
- * "חיפוש נוסף" היה מוצא את המשפט הקודם ומחזיר את אותן תוצאות.
+ * נקראו בשלוחה, ואי אפשר למחוק אותם. הם זיכרון השיחה, וגם כלא שלה.
+ * לכן כל שלב מקודד את מיקומו בתוך שם המשתנה:
+ *
+ *   m0, m1     בחירת המסלול. סבב חדש פותח מספר חדש
+ *   q0, q1     מה שנאמר. הקלטה מחדש היא סבב חדש
+ *   ok0_0      האישור. שמיעה חוזרת מוסיפה ספרה, כי צריך לשאול שוב
+ *   pick0      מה לעשות ברשימה ארוכה
+ *   nr0_0      צמצום הרשימה, ממופה לעמודים
+ *   p0_0       הקשה ברשימת התוצאות. אפס מקדם עמוד, ורק אפס
+ *   d0_2_0     תפריט הפרטים. המספר האמצעי הוא מצב הרשימה, וכך
+ *              "חזרה לרשימה" פותחת מרחב חדש ולא נתקעת בלולאה
+ *   nf0        התפריט של חיפוש שלא מצא
+ *
+ * מונים ולא דגלים. דגל אי אפשר לכבות, ומונה תמיד אפשר לקדם.
  */
 
-const FEW = 5;
-const ORDINAL = ['הראשון', 'השני', 'השלישי', 'הרביעי', 'החמישי'];
+/** תשע היו מתנגשות עם "לשמיעה חוזרת הקישו 9", ולכן שמונה */
+const PAGE = 8;
+
+const MODE_ASK: Record<string, string> = {
+  '1': 'search.ask.smart',
+  '2': 'search.ask.teacher',
+  '3': 'search.ask.topic',
+  '4': 'search.ask.city',
+};
 
 async function handle(request: Request) {
   const params = await yemotParams(request);
   const client = publicClient();
   const c = await loadCopy(client);
 
-  /** הקראת רשימה. כל שיעור הוא הודעה בפני עצמה, עם נשימה לפניו. */
-  const readOut = (rows: Awaited<ReturnType<typeof upcomingFor>>) => say(
-    ...rows.map((row, i) => {
-      const label = ORDINAL[i]
-        ? c('search.lesson', { ordinal: ORDINAL[i] })
-        : c('search.lessonMore');
-      return `${label} | ${describeLesson(row)}`;
-    }),
-  );
-
-  const rounds = roundOf(params, 'q');
-  const r = Math.max(0, rounds - 1);
-  const spoken = (params[`q${r}`] || '').trim();
-
   const meta = {
-    callId: params.ApiCallId, phone: params.ApiPhone, extension: params.ApiExtension,
+    callId: params.ApiCallId,
+    phone: params.ApiPhone,
+    extension: params.ApiExtension,
     kind: 'search' as const,
   };
 
+  /* ============================================================
+     איפה אנחנו בשיחה
+     ============================================================ */
+
+  const mn = roundOf(params, 'm');
+  const qn = roundOf(params, 'q');
+  const R = Math.max(mn, qn, 1) - 1;
+
+  /** המסלול של הסבב הזה. הקלטה מחדש אינה שואלת שוב, ולכן יורשת */
+  const modeOf = (round: number): string => {
+    for (let i = round; i >= 0; i -= 1) {
+      const value = String(params[`m${i}`] ?? '').trim();
+      if (value) return value;
+    }
+    return '1';
+  };
+
+  const spoken = String(params[`q${R}`] ?? '').trim();
+
   /* ---------- ניתוק באמצע ---------- */
   if (isHangup(params)) {
-    if (spoken) {
-      await logRequest(client, { ...meta, spoken, count: null, resolved: false });
-    }
+    if (spoken) await logRequest(client, { ...meta, spoken, count: null, resolved: false });
     return respond(noop('המתקשר ניתק'));
   }
 
-  /* ---------- פתיחה, וגם כל סבב חדש ---------- */
-  if (!rounds || params[`again${r}`] === '1') {
-    const next = params[`again${r}`] === '1' ? rounds : 0;
+  /* ============================================================
+     שלב א: בחירת המסלול
+     ============================================================ */
+
+  if (mn === 0 && qn === 0) {
     return respond(
-      next === 0 ? say(c('search.intro.1'), c('search.intro.2')) : say(c('search.again.ask')),
-      read(c('search.ask'), `q${next}`, { mode: 'voice', silence: 3, seconds: 20 }),
+      say(c('search.intro.1'), c('search.intro.2')),
+      read(c('search.menu'), 'm0', { min: 1, max: 1 }),
     );
   }
 
-  if (params[`again${r}`] === '2' || isHome(params[`again${r}`])) {
-    if (isHome(params[`again${r}`])) return respond(say(c('nav.back')), goHome());
-    return farewell(c);
+  const mode = modeOf(R);
+  if (isBack(params[`m${R}`])) return respond(say(c('nav.back')), goHome());
+  if (!MODE_ASK[mode]) {
+    return respond(say(c('nav.notFound')), read(c('search.menu'), `m${mn}`, { min: 1, max: 1 }));
   }
 
-  /* ---------- שמירת שיעור לאזור האישי ---------- */
-  if (params[`save${r}`]) {
-    const saveId = String(params[`save${r}`]);
-    const { data: res } = await client.rpc('igud_ivr_save_lesson', {
-      p_phone: params.ApiPhone || '', p_lesson: saveId,
-    });
-    const ok = (res as { success?: boolean } | null)?.success !== false;
-    return respond(
-      say(ok ? c('personal.saved') : c('nav.error')),
-      read(c('search.closing'), `again${r}`, { min: 1, max: 1 }),
-    );
+  /* ============================================================
+     שלב ב: מה שנאמר
+     ============================================================ */
+
+  if (qn <= R) {
+    return respond(read(c(MODE_ASK[mode]), `q${R}`, { mode: 'voice', silence: 3, seconds: 20 }));
   }
 
-  /* ---------- מה ביקשו ---------- */
-  const intent: Intent = await readIntent(spoken);
+  /* ---------- התמלול חזר ריק ---------- */
+  if (!spoken) {
+    let empties = 0;
+    for (let i = R; i >= 0 && String(params[`q${i}`] ?? '').trim() === ''; i -= 1) empties += 1;
 
-  const cityPrefix = `c${r}_`;
-  const narrowed = { ...intent };
-  const cities = await citiesWithin(client, { topic: intent.topic, teacher: intent.teacher });
-  if (params[`${cityPrefix}0`]) {
-    const choice = pagedChoice(params, cityPrefix, cities);
-    if ('value' in choice) narrowed.city = choice.value;
-  }
-
-  const filter = { city: narrowed.city, topic: narrowed.topic, teacher: narrowed.teacher };
-  const total = await countFor(client, filter);
-  const closing = c('search.closing');
-
-  /* ---------- לא נמצא דבר ---------- */
-  if (!total) {
-    // ניסיון אחרון לפי מילות מפתח, לפני שמוותרים
-    const fallback = await keywordSearch(client, intent.keywords || spoken, FEW);
-    if (fallback.length) {
-      await logRequest(client, { ...meta, spoken, intent, count: fallback.length, resolved: true });
+    if (empties < 3) {
       return respond(
-        say(c('search.partial.1'), c('search.partial.2')),
-        readOut(fallback as never),
-        read(closing, `again${r}`, { min: 1, max: 1 }),
+        say(c('search.notHeard')),
+        read(c(MODE_ASK[mode]), `q${R + 1}`, { mode: 'voice', silence: 3, seconds: 20 }),
+      );
+    }
+    // שלושה ניסיונות. לא ממשיכים לנסות, מציעים מסלול אחר
+    await logRequest(client, { ...meta, spoken: '', count: 0, resolved: false });
+    return respond(
+      say(c('search.notHeard'), c('search.none.2')),
+      read(c('search.none.menu'), `nf${R}`, { min: 1, max: 1 }),
+    );
+  }
+
+  /* ============================================================
+     שלב ג: שיקוף ואישור
+     ============================================================ */
+
+  const ok = pageState(params, `ok${R}_`);
+
+  if (ok.last === null) {
+    return respond(
+      say(c('search.heard', { text: spoken })),
+      read(c('search.confirm'), ok.next, { min: 1, max: 1 }),
+    );
+  }
+
+  if (ok.last === '3') {
+    // שמיעה חוזרת של מה שהמערכת הבינה
+    return respond(
+      say(c('search.heard', { text: spoken })),
+      read(c('search.confirm'), ok.next, { min: 1, max: 1 }),
+    );
+  }
+
+  if (ok.last === '2') {
+    // הקלטה מחדש, באותו מסלול
+    return respond(read(c(MODE_ASK[mode]), `q${R + 1}`, { mode: 'voice', silence: 3, seconds: 20 }));
+  }
+
+  if (ok.last === '4' || isBack(ok.last)) {
+    return respond(say(c('nav.back')), read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }));
+  }
+
+  if (ok.last !== '1') {
+    return respond(say(c('nav.notFound')), read(c('search.confirm'), ok.next, { min: 1, max: 1 }));
+  }
+
+  /* ============================================================
+     שלב ד: מה מחפשים
+     ============================================================ */
+
+  let filter: SearchFilter = {};
+  let heading = '';
+  let intent: Intent | null = null;
+
+  if (mode === '1') {
+    intent = await readIntent(spoken);
+    filter = { city: intent.city, topic: intent.topic, teacher: intent.teacher };
+    heading = describeIntent(intent);
+    if (!filter.city && !filter.topic && !filter.teacher) {
+      // הפירוק לא חילץ דבר. מילות מפתח, ולא המאגר כולו
+      filter = { words: keywordsOf(intent.keywords || spoken) };
+      heading = '';
+    }
+  } else if (mode === '2') {
+    filter = { teacher: spoken };
+    heading = `של ${spoken}`;
+  } else if (mode === '3') {
+    const known = matchOne(await topTopics(client, 200), spoken);
+    filter = known ? { topic: known } : { words: keywordsOf(spoken) };
+    heading = known ? `בנושא ${known}` : '';
+  } else {
+    const known = matchOne(await topCities(client, 300), spoken);
+    filter = known ? { city: known } : { words: keywordsOf(spoken) };
+    heading = known ? `ב${known}` : '';
+  }
+
+  /* ---------- הצמצום, אם נבחר ---------- */
+  const narrowBy: 'city' | 'topic' | 'teacher' = mode === '4' ? 'topic'
+    : mode === '3' ? 'city'
+      : mode === '2' ? 'city'
+        : filter.city ? 'topic' : 'city';
+
+  const pick = String(params[`pick${R}`] ?? '').trim();
+  let options: string[] = [];
+  let narrowed = false;
+
+  if (pick === '2') {
+    options = await narrowOptions(client, filter, narrowBy);
+    const nr = pageState(params, `nr${R}_`);
+    const index = Number(nr.last);
+
+    if (nr.last && index >= 1 && index <= PAGE) {
+      const chosen = options[nr.page * PAGE + index - 1];
+      if (chosen) {
+        filter = { ...filter, [narrowBy]: chosen };
+        heading = narrowBy === 'city' ? `ב${chosen}`
+          : narrowBy === 'topic' ? `בנושא ${chosen}` : `של ${chosen}`;
+        narrowed = true;
+      }
+    }
+  }
+
+  const total = await countLessons(client, filter);
+
+  /* ============================================================
+     שלב ה: לא נמצא דבר
+     ============================================================ */
+
+  if (!total) {
+    const nf = String(params[`nf${R}`] ?? '').trim();
+
+    if (nf === '1' || isBack(nf)) {
+      return respond(
+        say(c('search.again.ask')),
+        read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }),
       );
     }
 
-    await logRequest(client, { ...meta, spoken, intent, count: 0, resolved: false });
-
-    if (params[`retry${r}`] === '2') {
+    if (nf === '2') {
+      await client.rpc('igud_submit_request', {
+        p_kind: 'lesson_wanted',
+        payload: {
+          contact_name: `בקשה קולית ${params.ApiPhone || ''}`,
+          phone: params.ApiPhone || '',
+          source: 'yemot',
+          source_ref: params.ApiCallId || null,
+          details: { message: spoken, viaVoice: true, wanted: true, mode },
+        },
+      });
       return farewell(c, c('search.noted.1'), c('search.noted.2'), c('search.noted.3'));
     }
+
+    await logRequest(client, { ...meta, spoken, intent, count: 0, resolved: false });
     return respond(
       say(c('search.none.1'), c('search.none.2')),
-      read(c('search.none.menu'), `retry${r}`, { min: 1, max: 1 }),
+      read(c('search.none.menu'), `nf${R}`, { min: 1, max: 1 }),
     );
   }
 
-  const heading = describeIntent(narrowed);
   const found = total === 1
     ? c('search.foundOne', { heading })
     : c('search.found', { count: total, heading });
 
-  /* ---------- מעט תוצאות: מקריאים מיד ---------- */
-  if (total <= FEW) {
-    const rows = await upcomingFor(client, filter, FEW);
-    await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: true });
+  /* ============================================================
+     שלב ו: הרשימה — מוגדרת כאן, כי גם מסך הצמצום נופל אליה
+     ============================================================ */
+
+  const p = pageState(params, `p${R}_`);
+  const index = Number(p.last);
+  const inDetails = Boolean(p.last) && index >= 1 && index <= PAGE;
+
+  /** מסך הרשימה: עמוד אחד, ואחריו המקשים */
+  const listScreen = async (page: number, ...before: string[]): Promise<Response> => {
+    const rows = await pageOfLessons(client, filter, page, PAGE);
+    if (!rows.length && page > 0) return listScreen(0, ...before);
+
+    const lines = rows.map((row, i) => c('search.listItem', { line: listLine(row), n: i + 1 }));
+    if (total > (page + 1) * PAGE) lines.push(c('search.listMore'));
+    lines.push(c('search.listRepeat'), c('search.listNew'));
+
+    await logRequest(client, { ...meta, spoken, intent, count: total, resolved: true });
+
+    // חיפוש שנפל למילות מפתח אינו התאמה מדויקת, וכדאי שהמאזין ידע
+    const opening = page > 0 ? [c('search.listPage')]
+      : filter.words?.length ? [c('search.partial.1'), c('search.partial.2')]
+        : [found, c('search.listHead')];
+
     return respond(
-      say(found),
-      readOut(rows),
-      read(closing, `again${r}`, { min: 1, max: 1 }),
+      say(...before, ...opening),
+      read(lines.join('. '), p.next, { min: 1, max: 2, wait: 5 }),
+    );
+  };
+
+  /* ============================================================
+     שלב ז: הרבה תוצאות
+     ============================================================ */
+
+  // מתחת לעשרה לא מציעים לצמצם. הרשימה קצרה דיה, וההצעה רק מאריכה
+  if (total >= 10 && !pick) {
+    await logRequest(client, { ...meta, spoken, intent, count: total, resolved: false });
+    return respond(say(found), read(c('search.manyMenu'), `pick${R}`, { min: 1, max: 1 }));
+  }
+
+  if (isBack(pick)) {
+    return respond(say(c('nav.back')), read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }));
+  }
+
+  /* ---------- מסך הצמצום ---------- */
+  if (pick === '2' && !narrowed) {
+    const nr = pageState(params, `nr${R}_`);
+
+    if (options.length < 2) {
+      // אין מה לצמצם: לא שולחים אותו למסך ריק, ממשיכים לרשימה
+      return listScreen(0, say(c('search.narrow.none')));
+    }
+
+    if (isBack(nr.last)) {
+      return respond(say(c('nav.back')), read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }));
+    }
+
+    const page = nr.last === '9' ? Math.max(0, nr.page) : nr.page;
+    const slice = options.slice(page * PAGE, page * PAGE + PAGE);
+    const start = slice.length ? page : 0;
+    const shown = slice.length ? slice : options.slice(0, PAGE);
+
+    const lines = shown.map((value, i) => `להקשה על ${i + 1}, ${value}`);
+    if (options.length > (start + 1) * PAGE) lines.push(c('search.listMore'));
+    lines.push(c('search.listRepeat'), c('nav.hint'));
+
+    return respond(
+      say(c(`search.narrow.${narrowBy}`)),
+      read(lines.join('. '), nr.next, { min: 1, max: 1 }),
     );
   }
 
-  /* ---------- הרבה תוצאות ---------- */
+  /* ============================================================
+     שלב ז: הרשימה, והפרטים
+     ============================================================ */
 
-  // בחר לשמוע את הראשונים
-  if (params[`pick${r}`] === '1') {
-    const rows = await upcomingFor(client, filter, FEW);
-    await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: true });
-    return respond(
-      say(c('search.nearest')),
-      readOut(rows),
-      read(closing, `again${r}`, { min: 1, max: 1 }),
-    );
+  if (!inDetails) {
+    if (isBack(p.last)) {
+      return respond(say(c('nav.back')), read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }));
+    }
+    if (p.last && p.last !== '0' && p.last !== '9') {
+      return listScreen(p.page, c('nav.notFound'));
+    }
+    return listScreen(p.page);
   }
 
-  // בחר לצמצם לפי עיר
-  if (params[`pick${r}`] === '2') {
-    if (!cities.length) {
-      const rows = await upcomingFor(client, filter, FEW);
-      return respond(
-        say(c('search.oneArea.1'), c('search.oneArea.2')),
-        readOut(rows),
-        read(closing, `again${r}`, { min: 1, max: 1 }),
-      );
-    }
-    const choice = pagedChoice(params, cityPrefix, cities);
-    if ('askText' in choice) {
-      return respond(
-        say(c('search.cityAsk')),
-        read(choice.askText, choice.varName, { min: 1, max: 1 }),
-      );
-    }
-  }
+  /* ---------- הפרטים המלאים ---------- */
 
-  await logRequest(client, { ...meta, spoken, intent: narrowed, count: total, resolved: false });
+  const rows = await pageOfLessons(client, filter, p.page, PAGE);
+  const lesson: LessonRow | null = rows[index - 1]
+    ? await lessonById(client, rows[index - 1].id)
+    : null;
 
-  return respond(
-    say(found),
-    read(c('search.manyMenu'), `pick${r}`, { min: 1, max: 1 }),
+  if (!lesson) return listScreen(p.page, c('nav.notFound'));
+
+  // המספר האמצעי הוא מצב הרשימה, וכך חזרה לרשימה פותחת מרחב חדש
+  const d = pageState(params, `d${R}_${p.n}_`);
+
+  const detailScreen = (...before: string[]) => respond(
+    say(...before, c('search.detailHead')),
+    ...detailSpeech(lesson),
+    read(c('search.detailMenu'), d.next, { min: 1, max: 1 }),
   );
+
+  if (d.last === null || d.last === '9') return detailScreen();
+
+  if (d.last === '5') {
+    const { data } = await client.rpc('igud_ivr_save_lesson', {
+      p_phone: params.ApiPhone || '', p_lesson: lesson.id,
+    });
+    const saved = (data as { success?: boolean } | null)?.success !== false;
+    return respond(
+      say(saved ? c('personal.saved') : c('nav.error')),
+      read(c('search.detailMenu'), d.next, { min: 1, max: 1 }),
+    );
+  }
+
+  if (isBack(d.last)) return listScreen(p.page);
+
+  if (d.last === '3') {
+    return respond(
+      say(c('search.again.ask')),
+      read(c('search.menu'), `m${R + 1}`, { min: 1, max: 1 }),
+    );
+  }
+
+  return detailScreen(c('nav.notFound'));
 }
 
 export const GET = handle;
