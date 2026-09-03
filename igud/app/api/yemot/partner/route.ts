@@ -3,6 +3,7 @@ import {
   creditCard, goHome, isHangup, noop, read, respond, say, sayDigits, yemotParams,
 } from '@/lib/yemot';
 import { farewell, freeMessage, isBack, isHome } from '@/lib/ivr-flows';
+import { logRequest } from '@/lib/ivr-ai';
 import { loadCopy } from '@/lib/ivr-copy';
 import { SITE } from '@/lib/site';
 
@@ -78,7 +79,24 @@ async function handle(request: Request) {
     if (code === 'GoBack') {
       return respond(say(c('nav.back')), goHome());
     }
-    // 000 הוא האישור המקובל אצל רוב הסולקים, וכל ערך אחר הוא סירוב
+
+    // כל קוד תשובה נרשם ביומן, מוצלח ככושל.
+    //
+    // זו אינה סטטיסטיקה אלא הכרח. "000" הוא האישור המקובל אצל רוב
+    // הסולקים, ואיננו יודעים בוודאות מה נדרים פלוס מחזירה — ואם היא
+    // מחזירה ערך אחר, תורם ישמע "העסקה לא הושלמה" בזמן שהכסף נגבה,
+    // ויתרום שוב. הרישום הופך את השאלה הזו לתשובה שמגיעה מהעסקה
+    // הראשונה במקום מניחוש, ואפשר לתקן לפני שנכנסים תורמים אמיתיים.
+    await logRequest(client, {
+      callId: params.ApiCallId,
+      phone,
+      extension: params.ApiExtension,
+      kind: 'donation',
+      spoken: `CreditCard_CODE=${code}`,
+      count: Number(digits(params.amount || '')) || null,
+      resolved: /^0+$/.test(code),
+    });
+
     const approved = /^0+$/.test(code);
     if (approved) return farewell(c, c('partner.paid.1'), c('partner.paid.2'));
     return respond(

@@ -94,6 +94,40 @@ export default function IvrCopyAdmin() {
     if (!failed) await load();
   }
 
+  /**
+   * ייצוא כל הנוסחים לקובץ, לעיון ואישור.
+   *
+   * מי שמאשר את מה שהקו אומר אינו בהכרח מי שיושב מול המסך הזה, ולפעמים
+   * הוא רוצה לעבור על הכול בשקט ולסמן. הקובץ יוצא מקובץ לפי שלוחה,
+   * ובכל שורה גם ההסבר מתי המשפט נשמע וגם האם הוא נערך או שהוא
+   * ברירת המחדל — כי "מה שונה" הוא לרוב מה שמעניין.
+   */
+  function exportCopy() {
+    const lines: string[] = [
+      'איגוד השיעורים — כל הנוסחים שנשמעים בקו',
+      `נכון ל ${new Date().toLocaleDateString('he-IL')}`,
+      `${COPY_ENTRIES.length} משפטים`,
+      '',
+    ];
+    for (const [group, entries] of groups) {
+      lines.push('', `=== ${group} ===`, '');
+      for (const entry of entries) {
+        const text = edited[entry.key] ?? entry.text;
+        lines.push(`${text}${edited[entry.key] !== undefined ? '   [נערך]' : ''}`);
+        lines.push(`   (${entry.note})`);
+        lines.push('');
+      }
+    }
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `איגוד השיעורים - נוסחי הקו ${new Date().toISOString().slice(0, 10)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function reset(key: string) {
     const fallback = COPY_ENTRIES.find((e) => e.key === key)?.text ?? '';
     setDraft((d) => ({ ...d, [key]: fallback }));
@@ -104,14 +138,19 @@ export default function IvrCopyAdmin() {
       title="נוסחי המערכת הקולית"
       description="כל משפט שנשמע בקו. שינוי נכנס לתוקף בשיחה הבאה, בלי פריסה"
       actions={(
-        <button
-          type="button"
-          onClick={save}
-          disabled={busy || !changed.length}
-          className="btn-primary disabled:opacity-40"
-        >
-          {busy ? 'שומר' : `שמירה${changed.length ? ` (${changed.length})` : ''}`}
-        </button>
+        <div className="flex gap-2">
+          <button type="button" onClick={exportCopy} className="btn btn-quiet !py-2 !text-[0.82rem]">
+            ייצוא לאישור
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            disabled={busy || !changed.length}
+            className="btn-primary disabled:opacity-40"
+          >
+            {busy ? 'שומר' : `שמירה${changed.length ? ` (${changed.length})` : ''}`}
+          </button>
+        </div>
       )}
     >
       <Toast message={toast} tone={tone} />
