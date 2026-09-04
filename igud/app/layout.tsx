@@ -4,6 +4,7 @@ import './globals.css';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import FloatingCta from '@/components/FloatingCta';
+import RouteProgress from '@/components/RouteProgress';
 import { SITE } from '@/lib/site';
 
 const display = Frank_Ruhl_Libre({
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           דילוג לתוכן
         </a>
+        <RouteProgress />
         <SiteHeader />
         <main id="main" className="flex-1">{children}</main>
         <SiteFooter />
