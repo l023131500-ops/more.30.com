@@ -7,6 +7,7 @@ import { rabbiName } from '@/lib/format';
 import { FALLBACK_LOGO } from '@/lib/site';
 import { IconPin, IconUser } from '@/components/Icons';
 import { TEACHER_PUBLIC_COLUMNS } from '@/lib/queries';
+import Scene from '@/components/Scene';
 
 export const revalidate = 300;
 
@@ -40,7 +41,9 @@ export default async function RabbisPage() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
-      <header className="mb-8">
+      <header className="relative isolate mb-8">
+        {/* קשתות דקות מאחורי הכותרת, אותה שפה של הפתיח */}
+        <Scene name="rabbis" className="-z-10 opacity-[0.22]" />
         <p className="flex items-center gap-1.5 text-[0.75rem] font-bold uppercase tracking-wide text-gold-700">
           <IconUser className="h-3.5 w-3.5" />
           מגידי שיעור

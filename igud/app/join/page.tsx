@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { IconArrowLeft, IconBuilding, IconUser } from '@/components/Icons';
 import { SITE } from '@/lib/site';
+import Scene from '@/components/Scene';
 
 export const metadata: Metadata = {
   title: 'הצטרפות לאיגוד השיעורים',
@@ -41,14 +42,26 @@ export default function JoinPage() {
         חזרה למאגר
       </Link>
 
-      <header className="mb-10 text-center">
-        <h1 className="font-display text-3xl font-bold text-royal-700 sm:text-4xl">
-          הצטרפות לאיגוד השיעורים
-        </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-ink-700 sm:text-base">
-          האיגוד מחבר בין מקומות שמחפשים מגיד שיעור לבין מגידי שיעור שמחפשים מקום.
-          בוחרים את הטופס המתאים, וצוות האיגוד עושה את ההתאמה.
-        </p>
+      {/*
+        פתיח כהה, ולא כותרת על קלף.
+        זהו העמוד שבו אדם מחליט אם להצטרף, ורגע ההחלטה ראוי לפתיח
+        שנראה כמו כניסה לבית מדרש ולא כמו ראש טופס.
+      */}
+      <header className="relative mb-10 overflow-hidden rounded-3xl border border-gold-400/50 bg-royal-800
+                         px-6 py-14 text-center sm:px-10 sm:py-16">
+        <Scene
+          name="join"
+          overlay="bg-gradient-to-b from-royal-900/72 via-royal-800/50 to-royal-900/82"
+        />
+        <div className="relative">
+          <h1 className="font-display text-3xl font-bold text-parch-50 sm:text-4xl">
+            הצטרפות לאיגוד השיעורים
+          </h1>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-royal-100 sm:text-base">
+            האיגוד מחבר בין מקומות שמחפשים מגיד שיעור לבין מגידי שיעור שמחפשים מקום.
+            בוחרים את הטופס המתאים, וצוות האיגוד עושה את ההתאמה.
+          </p>
+        </div>
       </header>
 
       <div className="grid gap-5 md:grid-cols-2">

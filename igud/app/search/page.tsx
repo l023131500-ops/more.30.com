@@ -3,6 +3,7 @@ import { publicClient, supabaseConfigured } from '@/lib/supabase';
 import { fetchActiveCities, fetchLessons, fetchTaxonomy } from '@/lib/queries';
 import LessonBoard from '@/components/LessonBoard';
 import { IconSearch } from '@/components/Icons';
+import Scene from '@/components/Scene';
 
 export const revalidate = 120;
 
@@ -29,7 +30,9 @@ export default async function SearchPage() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6">
-      <header className="mb-8">
+      <header className="relative isolate mb-8">
+        {/* קשתות דקות מאחורי הכותרת, אותה שפה של הפתיח */}
+        <Scene name="search" className="-z-10 opacity-[0.22]" />
         <p className="flex items-center gap-1.5 text-[0.75rem] font-bold uppercase tracking-wide text-gold-700">
           <IconSearch className="h-3.5 w-3.5" />
           חיפוש חכם

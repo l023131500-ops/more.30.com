@@ -10,7 +10,7 @@ import UpcomingTicker, { type UpcomingRow } from '@/components/UpcomingTicker';
 import VenueMarquee, { type VenueTile } from '@/components/VenueMarquee';
 import { relativeWhen, todayHebrew } from '@/lib/format';
 import { SITE } from '@/lib/site';
-import BeitMidrash from '@/components/art/BeitMidrash';
+import Scene from '@/components/Scene';
 import { IconBook, IconBuilding, IconSparkle, IconUser } from '@/components/Icons';
 
 export const revalidate = 120;
@@ -111,11 +111,12 @@ export default async function HomePage() {
         כך יש לעמוד עומק ואווירה, והמילים נשארות הדבר הראשון שקוראים.
       */}
       <section className="relative overflow-hidden bg-royal-800">
-        <div className="pointer-events-none absolute inset-0">
-          <BeitMidrash className="h-full w-full" />
-          {/* שכבה כהה מצד הטקסט, כדי שהמילים יישבו על שקט ולא על פרטים */}
-          <div className="absolute inset-0 bg-gradient-to-l from-royal-900/92 via-royal-800/72 to-royal-900/35" />
-        </div>
+        {/* שכבה כהה מצד הטקסט, כדי שהמילים יישבו על שקט ולא על פרטים */}
+        <Scene
+          name="hero"
+          priority
+          overlay="bg-gradient-to-l from-royal-900/92 via-royal-800/72 to-royal-900/35"
+        />
         {/* פס זהב שסוגר את הפאנל, וקימור עדין אל התוכן הבהיר */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-l from-transparent via-gold-500/70 to-transparent" />
 
@@ -227,8 +228,11 @@ export default async function HomePage() {
 
       {/* ---------- הצטרפות ---------- */}
       <section className="mx-auto mt-20 max-w-[1400px] px-4 sm:px-6">
-        <div className="overflow-hidden rounded-3xl border border-gold-400/60 bg-gradient-to-l from-royal-700 to-royal-800 p-8 text-gold-100 sm:p-12">
-          <div className="grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="relative overflow-hidden rounded-3xl border border-gold-400/60
+                        bg-gradient-to-l from-royal-700 to-royal-800 p-8 text-gold-100 sm:p-12">
+          {/* קשתות בקו זהב לאורך תחתית הפאנל, בעוצמה נמוכה */}
+          <Scene name="cta" className="opacity-40" />
+          <div className="relative grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
             <div>
               <h2 className="font-display text-2xl font-bold sm:text-3xl">
                 מעוניינים לפתוח שיעור, או למסור שיעור?
