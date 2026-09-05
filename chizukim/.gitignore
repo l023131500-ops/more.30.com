@@ -1,0 +1,7 @@
+node_modules/
+out/
+.env
+*.wav
+*.mp3
+chizukim-out/
+campaign-out/

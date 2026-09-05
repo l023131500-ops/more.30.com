@@ -1,0 +1,573 @@
+@import "tailwindcss";
+
+/* ============================================================
+   איגוד השיעורים — שפה עיצובית
+   הפלטה נדגמה ישירות מהלוגו: טורקיז־פטרול עמוק, זהב עתיק וקלף.
+   ============================================================ */
+
+@theme {
+  /*
+   * גוף האובל שבלוגו, מהעמוק שבקצוות ועד ההבהוב שבמרכז.
+   *
+   * הסולם הוגבר: הביניים היו אפרוריים ונתנו לעמוד מראה דהוי, וכעת יש
+   * בהם את הטורקיז שבאמת נמצא בלוגו. הקצוות העמוקים נשארו כפי שהיו,
+   * כי עליהם יושב טקסט לבן והם צריכים להישאר כהים דיים.
+   */
+  --color-royal-50:  #EFF8FA;
+  --color-royal-100: #D3EDF2;
+  --color-royal-200: #A3DAE4;
+  --color-royal-300: #6BBECE;
+  --color-royal-400: #3A9CB2;
+  --color-royal-500: #1F7C92;
+  --color-royal-600: #175E70;
+  --color-royal-700: #17353D;
+  --color-royal-800: #102831;
+  --color-royal-900: #0A1B21;
+
+  /* המסגרת והעיטורים: זהב עתיק, לא צהוב. חומם מעט, כדי שיאיר ולא יאפיר */
+  --color-gold-50:  #FEFCF4;
+  --color-gold-100: #FAF3DC;
+  --color-gold-200: #F3E7BF;
+  --color-gold-300: #EBD9A2;
+  --color-gold-400: #DCC078;
+  --color-gold-500: #C9A44F;
+  --color-gold-600: #AC8534;
+  --color-gold-700: #866527;
+
+  /* הקלף שבמגילה. קריר במעט, כדי לשבת נכון לצד הטורקיז */
+  --color-parch-50:  #FCFCFA;
+  --color-parch-100: #F7F6F1;
+  --color-parch-200: #EDEBE2;
+  --color-parch-300: #DFDCCF;
+
+  --color-ink-500: #647A82;
+  --color-ink-700: #33474E;
+  --color-ink-900: #16262B;
+
+  --font-display: var(--font-frank), "David Libre", Georgia, serif;
+  --font-body: var(--font-assistant), "Segoe UI", system-ui, sans-serif;
+
+  /*
+   * תנועה.
+   *
+   * שלושה משכים ועקומה אחת, ותו לא. אתר נראה מתוכנן כשכל דבר שזז
+   * זז באותו קצב: מה שמגיב למגע מיידי (quick), מה שנכנס למסך (base),
+   * ומה שגדול וזז לאט (slow). ערבוב של חמישה משכים שונים הוא ההבדל
+   * בין אתר שנראה מעוצב לאתר שנראה מורכב מחלקים.
+   */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-quick: 170ms;
+  --dur-base: 420ms;
+  --dur-slow: 680ms;
+  /* ההפרש בין איבר לאיבר ברשת שנכנסת. שישים אלפיות: מורגש, לא מייגע */
+  --stagger: 60ms;
+
+  --shadow-card: 0 1px 2px rgb(22 38 43 / 0.05), 0 8px 24px -12px rgb(22 38 43 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(22 38 43 / 0.06), 0 18px 40px -18px rgb(22 38 43 / 0.32);
+  --shadow-float: 0 10px 30px -6px rgb(23 53 61 / 0.45);
+}
+
+/* ---------- בסיס ---------- */
+
+html {
+  scroll-behavior: smooth;
+  background: var(--color-parch-100);
+}
+
+/*
+ * הרקע.
+ *
+ * שלוש שכבות, וכל אחת עושה דבר אחד: הילה חמה מלמעלה שמרימה את ראש
+ * העמוד, נגיעת טורקיז רכה בפינה שקושרת את הרקע ללוגו, ורשת עדינה
+ * מאוד שנותנת לשטח מרקש של נייר במקום שטח לבן ריק. הרשת בעוצמה
+ * נמוכה בכוונה — היא צריכה להיות מורגשת ולא נראית.
+ */
+body {
+  background:
+    radial-gradient(1100px 560px at 82% -14%, #FFFCF2 0%, transparent 60%),
+    radial-gradient(820px 480px at 2% 2%, #E4F3F6 0%, transparent 55%),
+    radial-gradient(700px 420px at 96% 88%, #FBF2DD 0%, transparent 58%),
+    var(--color-parch-100);
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.005em;
+}
+
+::selection {
+  background: var(--color-gold-300);
+  color: var(--color-royal-800);
+}
+
+/* ---------- גלילה ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gold-400) transparent;
+}
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--color-gold-400);
+  border-radius: 99px;
+  border: 2px solid var(--color-parch-100);
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--color-gold-500); }
+
+/* ---------- קישוט: פס זהב ---------- */
+
+.rule-gold {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold-400) 18%,
+    var(--color-gold-600) 50%,
+    var(--color-gold-400) 82%,
+    transparent
+  );
+}
+
+.hairline-gold {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold-500) 55%, transparent),
+    transparent
+  );
+}
+
+/* ---------- כרטיס ---------- */
+
+.card-surface {
+  background: linear-gradient(168deg, #FFFDF8 0%, var(--color-parch-100) 100%);
+  border: 1px solid var(--color-parch-300);
+  box-shadow: var(--shadow-card);
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 260ms ease;
+}
+
+.card-surface:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-gold-400);
+  box-shadow: var(--shadow-lift);
+}
+
+/* פס זהב עדין בקצה הימני של הכרטיס */
+.card-edge::before {
+  content: "";
+  position: absolute;
+  inset-block: 14%;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 99px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    var(--color-gold-400) 22%,
+    var(--color-gold-600) 50%,
+    var(--color-gold-400) 78%,
+    transparent
+  );
+  opacity: 0.65;
+  transition: opacity 260ms ease;
+}
+.card-surface:hover.card-edge::before { opacity: 1; }
+
+/* ---------- אנימציות ---------- */
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes slideInStart {
+  from { opacity: 0; transform: translateX(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes softPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(198 167 92 / 0.55), var(--shadow-float); }
+  55%      { box-shadow: 0 0 0 16px rgb(198 167 92 / 0); }
+}
+
+@keyframes marqueeStart {
+  from { transform: translateX(0); }
+  to   { transform: translateX(50%); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@keyframes tickerLift {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.985); }
+  100% { opacity: 1; transform: none; }
+}
+
+.animate-rise { animation: riseIn var(--dur-slow) var(--ease-out) both; }
+.animate-slide-start { animation: slideInStart var(--dur-slow) var(--ease-out) both; }
+.animate-ticker { animation: tickerLift var(--dur-slow) var(--ease-out) both; }
+.animate-soft-pulse { animation: softPulse 3.4s ease-out infinite; }
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeStart var(--marquee-duration, 62s) linear infinite;
+}
+.marquee-viewport:hover .marquee-track,
+.marquee-track:focus-within { animation-play-state: paused; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-parch-200) 25%,
+    var(--color-parch-100) 37%,
+    var(--color-parch-200) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- טפסים ---------- */
+
+.field {
+  width: 100%;
+  border-radius: 0.6rem;
+  border: 1px solid var(--color-parch-300);
+  background: #FFFDF8;
+  padding: 0.62rem 0.85rem;
+  font-size: 0.95rem;
+  color: var(--color-ink-900);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+.field::placeholder { color: color-mix(in srgb, var(--color-ink-500) 72%, transparent); }
+.field:focus {
+  outline: none;
+  border-color: var(--color-gold-500);
+  background: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold-400) 34%, transparent);
+}
+.field:disabled { background: var(--color-parch-200); color: var(--color-ink-500); }
+
+.field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-royal-700);
+}
+
+/* אסימוני בחירה */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-parch-300);
+  background: #FFFDF8;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  line-height: 1.15;
+  color: var(--color-ink-700);
+  cursor: pointer;
+  user-select: none;
+  transition: all 170ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.chip:hover {
+  border-color: var(--color-gold-400);
+  background: var(--color-gold-50);
+  transform: translateY(-1px);
+}
+.chip[data-on="true"] {
+  border-color: var(--color-royal-600);
+  background: linear-gradient(160deg, var(--color-royal-600), var(--color-royal-700));
+  color: var(--color-gold-100);
+  box-shadow: 0 4px 12px -4px rgb(74 24 24 / 0.5);
+}
+.chip:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+
+/*
+ * כפתורים.
+ *
+ * שלושה דברים מבדילים כפתור יקר מכפתור רגיל, וכולם כאן. גובה קבוע,
+ * כך ששני כפתורים זה לצד זה תמיד באותו גובה ולא לפי אורך המילה
+ * שבתוכם. קו אור דק בקצה העליון, שהוא מה שנותן לגוף צבעוני מראה של
+ * חומר ולא של מלבן. ולחיצה שמורגשת: הכפתור יורד אל המסך במקום להישאר
+ * קפוא, וזה ההבדל בין ממשק שמגיב לממשק שרק משנה עמוד.
+ */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  padding: 0.62rem 1.35rem;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--dur-quick) var(--ease-out),
+              box-shadow var(--dur-quick) var(--ease-out),
+              background var(--dur-quick) var(--ease-out),
+              border-color var(--dur-quick) var(--ease-out);
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* קו האור העליון, שיושב על כל כפתור מלא */
+.btn-primary::before,
+.btn-gold::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0.6rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+}
+
+.btn-primary {
+  background: linear-gradient(158deg, var(--color-royal-500), var(--color-royal-700) 62%, var(--color-royal-800));
+  color: var(--color-gold-100);
+  border: 1px solid var(--color-royal-800);
+  box-shadow: 0 8px 22px -10px rgb(16 40 49 / 0.75);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -12px rgb(16 40 49 / 0.85);
+}
+
+.btn-gold {
+  background: linear-gradient(158deg, var(--color-gold-200), var(--color-gold-400) 55%, var(--color-gold-500));
+  color: var(--color-royal-800);
+  border: 1px solid var(--color-gold-600);
+  box-shadow: 0 8px 22px -11px rgb(133 100 43 / 0.8);
+}
+.btn-gold:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -13px rgb(133 100 43 / 0.9);
+}
+
+.btn-quiet {
+  background: #FFFDF8;
+  color: var(--color-royal-700);
+  border: 1px solid var(--color-parch-300);
+}
+.btn-quiet:hover:not(:disabled) {
+  border-color: var(--color-gold-400);
+  background: var(--color-gold-50);
+  transform: translateY(-2px);
+}
+
+/* הלחיצה עצמה, לכל הסוגים */
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.985);
+  box-shadow: 0 3px 10px -6px rgb(16 40 49 / 0.6);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+
+/* ---------- כותרת מקושטת ---------- */
+
+.crest-title {
+  position: relative;
+  display: inline-block;
+  padding-inline: 1.1rem;
+}
+.crest-title::before,
+.crest-title::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  translate: 0 -50%;
+  rotate: 45deg;
+  background: var(--color-gold-500);
+  border-radius: 1px;
+}
+.crest-title::before { inset-inline-start: 0; }
+.crest-title::after { inset-inline-end: 0; }
+
+/* ---------- הדפסה ---------- */
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+  .card-surface { box-shadow: none; border-color: #ccc; }
+}
+
+/* ---------- טור השיעורים הקרובים ---------- */
+
+@keyframes tickerScroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+.ticker-track {
+  display: flex;
+  flex-direction: column;
+  animation: tickerScroll var(--ticker-duration, 60s) linear infinite;
+}
+.ticker-viewport:hover .ticker-track,
+.ticker-track:focus-within { animation-play-state: paused; }
+
+/* קיצוץ שורות */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+
+/* ============================================================
+   מרקם הנייר, ופס הזהב שמפריד בין אזורים
+   ============================================================ */
+
+/*
+ * רשת עדינה על כל השטח.
+ *
+ * שטח בצבע אחיד נראה שטוח על מסך גדול, וזה בדיוק מה שמבדיל עמוד
+ * שנראה מודפס מעמוד שנראה ריק. שתי משיחות בזווית, בשקיפות של אחוז
+ * וחצי — מספיק כדי שהעין תרגיש נייר ולא מספיק כדי שתראה קווים.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(58deg, rgb(23 53 61 / 0.016) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(-58deg, rgb(172 133 52 / 0.014) 0 1px, transparent 1px 9px);
+}
+
+/* כותרת אזור: פס זהב קצר מעל, כמו בכותרות של ספר */
+.section-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--font-display);
+}
+
+.section-mark::before,
+.section-mark::after {
+  content: "";
+  height: 1px;
+  width: 1.75rem;
+  background: linear-gradient(90deg, transparent, var(--color-gold-500));
+}
+
+.section-mark::after {
+  background: linear-gradient(90deg, var(--color-gold-500), transparent);
+}
+
+/* ============================================================
+   סולם, חלונות ותנועה
+   ============================================================ */
+
+/*
+ * טיפוגרפיה.
+ *
+ * שתי שורות שעושות את רוב ההבדל בעברית. גובה שורה של 1.7, כי אותיות
+ * עבריות אין להן אורך עולה ויורד כמו בלטינית והשורות נדבקות זו לזו
+ * בלי אוויר. ו-text-wrap: balance בכותרות, שמחלק את הכותרת לשורות
+ * שוות במקום להשאיר מילה בודדת יתומה בשורה שנייה. מילה יתומה היא
+ * הדבר שהעין קוראת כ"לא מוגמר" בלי לדעת להצביע עליו.
+ */
+body {
+  font-size: 1rem;
+  line-height: 1.7;
+  letter-spacing: -0.003em;
+}
+
+h1, h2, h3, h4 { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* מספרים בטבלה ובשעות: רוחב אחיד, כדי שטור לא ירקוד */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/*
+ * חלון.
+ *
+ * מסגרת אחת לכל תמונה באתר, ולכן כל התמונות נראות כמשפחה אחת ולא
+ * כאוסף. פס זהב דק בחוץ, טבעת אור דקה בפנים, ופינות באותו רדיוס של
+ * הכרטיסים. יחס הצדדים נקבע במקום השימוש, כי חלון של רקע רחב וחלון
+ * של דיוקן אינם אותו יחס — אבל המסגרת זהה.
+ */
+.window {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-500) 42%, transparent);
+  background: linear-gradient(168deg, var(--color-parch-100), var(--color-parch-200));
+  box-shadow: var(--shadow-card);
+}
+
+/* טבעת האור הפנימית, שמפרידה בין התמונה למסגרת */
+.window::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.28);
+  pointer-events: none;
+}
+
+.window img { transition: transform var(--dur-slow) var(--ease-out); }
+.window-zoom:hover img { transform: scale(1.045); }
+
+/*
+ * כניסה למסך.
+ *
+ * הפריטים אינם מונפשים בטעינה אלא כשהם באמת מגיעים לעין, ובהשהיה
+ * שגדלה בקצב קבוע לפי מקומם ברשת. זה ההבדל בין רשת שנשפכת בבת אחת
+ * לבין רשת שנפרשת. מי שכיבה תנועה במערכת ההפעלה מקבל את הכול מיד.
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur-base) var(--ease-out),
+              transform var(--dur-base) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal[data-in="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}

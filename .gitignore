@@ -4,3 +4,8 @@ node_modules/
 *.log
 .vercel
 package-lock.json
+igud/node_modules
+igud/.next
+igud/.env.local
+igud/next-env.d.ts
+igud/*.tsbuildinfo

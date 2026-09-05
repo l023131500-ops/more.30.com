@@ -1,0 +1,14 @@
+{
+  "name": "chizukim-yemot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "העלאת ארכיון החיזוקים הקצרים לשלוחה בימות המשיח",
+  "scripts": {
+    "plan": "node src/run.mjs plan",
+    "verify": "node src/run.mjs verify",
+    "pilot": "node src/run.mjs upload --pilot",
+    "upload": "node src/run.mjs upload",
+    "status": "node src/run.mjs status"
+  }
+}
