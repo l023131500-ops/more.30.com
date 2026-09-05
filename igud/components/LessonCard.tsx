@@ -63,7 +63,7 @@ export default function LessonCardTile({
   return (
     <Link
       href={`/lesson/${lesson.id}`}
-      className="card-surface card-edge animate-rise relative flex flex-col overflow-hidden rounded-2xl p-5 pr-6"
+      className="card-surface card-edge animate-rise relative flex h-full flex-col overflow-hidden rounded-2xl p-5 pr-6"
       style={{ animationDelay: `${Math.min(index, 11) * 45}ms` }}
     >
       <div className="flex items-start gap-4">
@@ -80,7 +80,7 @@ export default function LessonCardTile({
         </span>
 
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-lg font-bold leading-snug text-royal-700 line-clamp-2">
+          <h3 className="min-h-[3.15rem] font-display text-lg font-bold leading-snug text-royal-700 line-clamp-2">
             {lessonTitle(lesson)}
           </h3>
           <p className="mt-1 flex items-center gap-1.5 text-sm font-bold text-ink-700">
@@ -103,7 +103,7 @@ export default function LessonCardTile({
         )}
       </div>
 
-      <div className="mt-4 space-y-1.5 text-sm text-ink-700">
+      <div className="mt-4 mb-4 space-y-1.5 text-sm text-ink-700">
         {place && (
           <p className="flex items-start gap-1.5">
             <IconPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-600" />
@@ -125,7 +125,7 @@ export default function LessonCardTile({
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-parch-200 pt-3">
+      <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-parch-200 pt-3">
         <BroadcastMarks value={lesson.broadcast} />
         {lesson.audience_gender && (
           <span className="rounded-full border border-parch-300 bg-white/70 px-2 py-0.5 text-[0.66rem] font-bold text-ink-500">

@@ -11,6 +11,7 @@ import VenueMarquee, { type VenueTile } from '@/components/VenueMarquee';
 import { relativeWhen, todayHebrew } from '@/lib/format';
 import { SITE } from '@/lib/site';
 import Scene from '@/components/Scene';
+import GalleryBand from '@/components/GalleryBand';
 import { IconBook, IconBuilding, IconSparkle, IconUser } from '@/components/Icons';
 
 export const revalidate = 120;
@@ -225,6 +226,9 @@ export default async function HomePage() {
 
       {/* ---------- מרכזי תורה ---------- */}
       <VenueMarquee items={data.venueTiles} />
+
+      {/* ---------- שערי האיגוד ---------- */}
+      <GalleryBand />
 
       {/* ---------- הצטרפות ---------- */}
       <section className="mx-auto mt-20 max-w-[1400px] px-4 sm:px-6">

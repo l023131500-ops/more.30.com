@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { SITE } from '@/lib/site';
-import { IconPhone, IconMail } from './Icons';
+import ContactBand from './ContactBand';
 
 const COLUMNS = [
   {
@@ -33,7 +33,11 @@ const COLUMNS = [
 export default function SiteFooter() {
   return (
     <footer className="mt-20 no-print">
-      <div className="rule-gold" />
+      {/* דרכי הפנייה יושבות מעל הכותרת התחתונה, על רקע בהיר, כדי שלא
+          ייבלעו בתוך רשימות הקישורים */}
+      <ContactBand />
+
+      <div className="mt-14 rule-gold" />
       <div className="bg-gradient-to-b from-royal-700 to-royal-800 text-gold-100">
         <div className="mx-auto grid max-w-[1400px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
           <div>
@@ -56,16 +60,6 @@ export default function SiteFooter() {
               או במערכת הקולית.
             </p>
 
-            <div className="mt-6 flex flex-col gap-2 text-sm">
-              <a href={`tel:${SITE.voiceLine}`} className="inline-flex items-center gap-2 hover:text-white">
-                <IconPhone className="h-4 w-4 text-gold-400" />
-                מערכת קולית {SITE.voiceLine}
-              </a>
-              <a href={`mailto:${SITE.email}`} className="inline-flex items-center gap-2 hover:text-white">
-                <IconMail className="h-4 w-4 text-gold-400" />
-                {SITE.email}
-              </a>
-            </div>
           </div>
 
           {COLUMNS.map((col) => (
