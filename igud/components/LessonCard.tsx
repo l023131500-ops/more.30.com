@@ -64,7 +64,7 @@ export default function LessonCardTile({
     <Link
       href={`/lesson/${lesson.id}`}
       className="card-surface card-edge animate-rise relative flex h-full flex-col overflow-hidden rounded-2xl p-5 pr-6"
-      style={{ animationDelay: `${Math.min(index, 11) * 45}ms` }}
+      style={{ animationDelay: `calc(${Math.min(index, 11)} * var(--stagger))` }}
     >
       <div className="flex items-start gap-4">
         <span className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl

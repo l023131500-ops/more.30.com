@@ -65,7 +65,7 @@ export default async function RabbisPage() {
               key={teacher.id}
               href={`/rabbi/${teacher.id}`}
               className="card-surface card-edge animate-rise relative flex items-center gap-3 rounded-xl p-4 pr-5"
-              style={{ animationDelay: `${Math.min(i, 10) * 40}ms` }}
+              style={{ animationDelay: `calc(${Math.min(i, 10)} * var(--stagger))` }}
             >
               <span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-lg
                                border border-parch-300 bg-white/70 p-1">
